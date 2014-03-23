@@ -1,0 +1,6 @@
+[submodule "Penlight"]
+	path = Penlight
+	url = https://github.com/stevedonovan/Penlight.git
+[submodule "irc"]
+	path = irc
+	url = https://github.com/ShadowNinja/LuaIRC.git

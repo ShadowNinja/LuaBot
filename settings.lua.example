@@ -1,0 +1,27 @@
+{
+	debug = true,
+	prefix = "!",
+	privs = {
+		["^Project/staff/BotManager$"] = {"owner"},
+		["^Project/staff/"] = {"admin"}
+	},
+	networks = {
+		IRCNet = {
+			nick     = "LuaBot",
+			username = "LuaBot",
+			realname = "LuaBot",
+			host     = "irc.net",
+			channels = {
+				["#bots"] = {
+					autoJoin = true,
+				},
+			},
+		},
+	},
+	pluginPaths = {"plugins"},
+	plugins = {
+		Utilities = true,
+		Channel = true
+	},
+}
+
