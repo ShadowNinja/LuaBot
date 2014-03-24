@@ -101,8 +101,12 @@ end
 
 
 local function debugHook(name)
-	return function(conn, ...)
-		print(name:format(conn.network), ...)
+	return function(conn, line)
+		print(("[%s] %s (%s): %s"):format(
+			os.date("%H:%m:%S"),
+			name,
+			conn.network,
+			line))
 	end
 end
 
@@ -115,8 +119,8 @@ function bot:registerHooks()
 	self:hook("OnCTCP", bot.hooks.ctcp)
 
 	if self.config.debug then
-		self:hook("OnRaw", debugHook("RECV (%s):"))
-		self:hook("OnSend", debugHook("SEND (%s):"))
+		self:hook("OnRaw", debugHook("RECV"))
+		self:hook("OnSend", debugHook("SEND"))
 	end
 end
 
