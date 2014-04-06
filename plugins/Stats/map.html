@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+	<title>Network channel user map</title>
+	<script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+	<script type="text/javascript" src="map.js"></script>
+</head>
+<body>
+	<div id="netMap" style="width: 100%; height: 100%;"></div>
+	<script type="text/javascript">
+		var options = {
+			keyboard: true,
+			physics: {
+				barnesHut: {
+					enabled: false
+				},
+				repulsion: {
+					nodeDistance: 250,
+					centralGravity: 0.02,
+					springLength: 450,
+					springConstant: 0.022,
+					damping: 0.135
+				}
+			},
+			smoothCurves: false
+		};
+		var container = document.getElementById('netMap');
+		var data = {
+			nodes: window.nodes,
+			edges: window.edges
+		};
+		var graph = new vis.Graph(container, data, options);
+	</script>
+</body>
+</html>
+
