@@ -7,6 +7,8 @@
 
 local json = require("json")
 
+local pluginPath, conf = ...
+
 local waitingListEnd = false
 local chanUsers = {}
 local chansWaiting = {}
@@ -65,7 +67,7 @@ local function generateStats(conn)
 	chansWaiting = {}
 
 	-- Write data
-	local f, err = io.open("map.js", "w")
+	local f, err = io.open(conf.filename or "map.js", "w")
 	if not f then return end
 	f:write("window.nodes = ")
 	f:write(json.encode(nodes))
