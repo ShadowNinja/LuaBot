@@ -21,7 +21,7 @@ function bot:loadPlugins()
 			error(("Error loading plugin %s: %s")
 					:format(name, err))
 		end
-		self.plugins[name] = func(conf, pluginPath)
+		self.plugins[name] = func(pluginPath, conf)
 	end
 end
 
