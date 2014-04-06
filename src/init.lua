@@ -83,6 +83,7 @@ function bot:connect(name, data)
 	conn:connect({
 		host = data.host,
 		port = data.port,
+		secure = data.secure,
 	})
 	conn:invoke("OnConnect")
 	for chanName, info in pairs(data.channels) do

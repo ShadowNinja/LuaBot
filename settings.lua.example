@@ -11,6 +11,8 @@
 			username = "LuaBot",
 			realname = "LuaBot",
 			host     = "irc.net",
+			port     = 6667,
+			secure   = false,
 			channels = {
 				["#bots"] = {
 					autoJoin = true,
