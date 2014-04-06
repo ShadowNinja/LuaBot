@@ -10,18 +10,20 @@ function bot:checkCommand(conn, msg)
 	local text = msg.args[2]
 	local nickpart = text:sub(1, #nick + 2):lower()
 
-	local answer, success
-
 	-- First check for a nick prefix
-	if nickpart == nick..": " or
-		nickpart == nick..", " then
-		answer, success = self:handleCommand(conn, msg, text:sub(#nick + 3))
+	if nickpart == nick..": " or nickpart == nick..", " then
+		text = text:sub(#nick + 3)
 	-- Then check for the configured prefix
 	elseif prefix and text:sub(1, #prefix):lower() == prefix:lower() then
-		answer, success = self:handleCommand(conn, msg, text:sub(#prefix + 1))
+		text = text:sub(#prefix + 1)
+	-- Finally, all PMs are commands
+	elseif msg.args[1] == conn.nick then
+		-- Fall through
 	else
 		return false
 	end
+
+	local answer, success = self:handleCommand(conn, msg, text)
 
 	if answer then
 		self:reply(conn, msg, answer)
