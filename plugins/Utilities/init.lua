@@ -49,23 +49,32 @@ bot:registerCommand("shutdown", {
 })
 
 
-bot:registerCommand("config show", {
-	args = {{"value", "Configuration value", "word"}},
-	description = "Show the value of a configuration variable",
+bot:registerCommand("config", {
+	args = {{"key",   "Setting key", "word"},
+	        {"value", "Value",       "text", optional=true}},
+	description = "View or set the value of a configuration variable",
 	privs = {owner=true},
 	action = function(conn, msg, args)
-		local cur = bot.config
-		if args.value ~= "." then
-			for x in args.value:gmatch("([^%.]+)") do
-				if type(cur) ~= "table" then
-					return ("Tried to index non-table value with %s."):format(x), false
+		-- We keep track of the last table we were in and the next key,
+		-- rather than just navigating down the tree, because we need
+		-- to in order to set values by reference.
+		local last = bot
+		local nextKey = "config"
+		if args.key ~= "." then
+			for key in args.key:gmatch("([^%.]+)") do
+				last = last[nextKey]
+				if type(last) ~= "table" then
+					return ("Tried to index non-table value with %s."):format(key), false
 				end
-				cur = cur[x]
+				nextKey = key
 			end
 		end
-		local tp = type(cur)
-		local val = dump(cur, "")
-		return ("%s (%s): %s"):format(args.value, tp, val), true
+		if args.value then
+			last[nextKey] = args.value
+			bot:saveConfig()
+		end
+		local val = dump(last[nextKey], "")
+		return ("%s = %s"):format(args.key, val), true
 	end
 })
 
