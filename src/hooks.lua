@@ -94,8 +94,6 @@ function bot.hooks:ctcp(msg)
 		reply(os.date())
 	elseif command == "FINGER" then
 		reply(self.realname)
-	else
-		reply("CTCP command not supported")
 	end
 end
 
