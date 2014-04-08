@@ -1,5 +1,5 @@
 --[[
--- Plugin to generate network statistics
+-- Plugin to generate a network channel user map
 --
 -- This requires the Oper plugin, a valid operator block on the server, and
 --  the oper:spy privilege.
@@ -14,18 +14,18 @@ local chanUsers = {}
 local chansWaiting = {}
 
 
-bot:registerCommand("genstats", {
-	desctiption = "Generate network statistics",
-	privs = {stats=true},
+bot:registerCommand("genmap", {
+	desctiption = "Generate network channel user map",
+	privs = {map=true},
 	action = function(conn, msg, args)
 		waitingListEnd = true
 		conn:queue(irc.Message("LIST"))
-		return "Generating statistics...", true
+		return "Generating map...", true
 	end,
 })
 
 
-local function generateStats(conn)
+local function generateMap(conn)
 	local nodes = {}
 	local edges = {}
 	local nickIDs = {}
@@ -124,6 +124,6 @@ bot:hook("Do315", function(conn, msg)
 	for _, _ in pairs(chansWaiting) do
 		return
 	end
-	generateStats(conn)
+	generateMap(conn)
 end)
 
