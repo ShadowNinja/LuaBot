@@ -52,7 +52,6 @@ function bot:handleCommand(conn, msg, line, opts)
 		def = self.commands[cmd]
 	until def or not pos
 
-	args = args:split()
 
 	if not def then
 		return ("Unknown command '%s'. Try 'help'."):format(cmd), false
@@ -73,7 +72,75 @@ function bot:handleCommand(conn, msg, line, opts)
 		end
 	end
 
+	local err
+	args, err = self:processArgs(self.commands[cmd].args, args)
+	if err then
+		return err, false
+	end
+
 	return self.commands[cmd].action(conn, msg, args)
+end
+
+
+function bot:processArgs(args, str)
+	local a = {}
+	for _, arg in ipairs(args) do
+		local val
+		val, str = self:checkArg(arg, str)
+		if val then
+			a[arg.id] = val
+		elseif not arg.optional then
+			return nil, "Required argument missing"
+		end
+	end
+	if str and str ~= "" then
+		return nil, "Too many arguments "
+	end
+	return a
+end
+
+
+function bot:humanArgs(args)
+	local t = {}
+	for _, arg in ipairs(args) do
+		local s
+
+		if arg.optional then s = '['
+		else s = '<' end
+
+		s = s..arg.name
+
+		if arg.optional then s = s..']'
+		else s = s..'>' end
+
+		table.insert(t, s)
+	end
+	return table.concat(t, ' ')
+end
+
+-- Converters return the processed argument and the remaining arguments
+local converters = {
+	word = function(args)
+		return args:match("^(%S+)%s?(.*)$")
+	end,
+	number = function(args)
+		local num, rest = args:match("^(%d+)%s?(.*)$")
+		return tonumber(num), rest
+	end,
+	text = function(args)
+		return args ~= "" and args or nil, ""
+	end,
+}
+
+function bot:checkArg(arg, str)
+	assert(converters[arg.type], "No converter for "..arg.type)
+	local val, str = converters[arg.type](str)
+	if val == nil then
+		if arg.required and arg.default then
+			val = arg.default
+		end
+	end
+	return val, str
 end
 
 
@@ -132,8 +199,14 @@ function bot:reply(conn, msg, text)
 end
 
 
-function bot:registerCommand(name, desc)
-	self.commands[name] = desc
+function bot:registerCommand(name, def)
+	def.args = def.args or {}
+	for _, arg in pairs(def.args) do
+		arg.id   = arg.id   or arg[1]
+		arg.name = arg.name or arg[2]
+		arg.type = arg.type or arg[3]
+	end
+	self.commands[name] = def
 end
 
 
@@ -142,10 +215,10 @@ end
 --]]
 
 bot:registerCommand("help", {
-	params = "[command]",
+	args = {{"command", "Command", "text", optional=true}},
 	description = "Get help with a command or list commands",
 	action = function(conn, msg, args)
-		if not args[1] then
+		if not args.command then
 			local cmdlist = "Commands: "
 			for name, def in pairs(bot.commands) do
 				cmdlist = cmdlist..name..", "
@@ -154,24 +227,24 @@ bot:registerCommand("help", {
 					.." help with a specific command.", true
 		end
 
-		local cmd = bot.commands[args[1]]
+		local cmd = bot.commands[args.command]
 		if not cmd then
-			return ("Unknown command '%s'."):format(args[1]), false
+			return ("Unknown command '%s'."):format(args.command), false
 		end
 
 		return  ("Usage: %s %s -- %s"):format(
-				args[1],
-				cmd.params or "<no parameters>",
+				args.command,
+				bot:humanArgs(cmd.args),
 				cmd.description), true
 	end
 })
 
 
 bot:registerCommand("more", {
-	params = "[name]",
+	args = {{"name", "Name", "word", optional=true}},
 	description = "Return more output from a previous command",
 	action = function(conn, msg, args)
-		local name = args[1] or msg.user.nick
+		local name = args.name or msg.user.nick
 		local to = bot:replyTo(conn, msg)
 		local text = bot:getMore(name)
 		if text then
@@ -184,28 +257,22 @@ bot:registerCommand("more", {
 
 
 bot:registerCommand("raw", {
-	params = "<IRC message>",
+	args = {{"message", "IRC message", "text"}},
+	description = "Send a raw message to the IRC server",
 	privs = {owner=true},
-	description = "Send a raw line to the IRC server",
 	action = function(conn, msg, args)
-		if #args < 1 then
-			return "Command required.", false
-		end
-		conn:queue(table.concat(args, " "))
+		conn:queue(args.message)
 		return "Sent.", true
 	end
 })
 
 
 bot:registerCommand("eval", {
-	params = "<Lua code>",
+	args = {{"code", "Lua code", "text"}},
 	description = "Evaluate a chunk of Lua code",
 	privs = {owner=true},
 	action = function(conn, msg, args)
-		if not args[1] then
-			return "No code!", false
-		end
-		local f, err = loadstring(table.concat(args, " "))
+		local f, err = loadstring(args.code)
 		if f == nil then
 			return err, false
 		end

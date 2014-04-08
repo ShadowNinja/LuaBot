@@ -26,12 +26,12 @@ bot:registerCommand("uptime", {
 
 
 bot:registerCommand("quit", {
+	args = {{"message", "Quit message", "text", optional=true}},
 	description = "Disconnect from the current network",
-	params = "[message]",
 	privs = {owner=true},
 	action = function(conn, msg, args)
 		-- Wait for our response to get through before disconnecting
-		local reason = args[1] or ("Disconnect requested by %s.")
+		local reason = args.message or ("Disconnect requested by %s.")
 				:format(msg.user.nick)
 		bot.schedule:add(1, bot.disconnect, bot, conn.network, reason)
 		return "Disconnecting...", true
@@ -50,15 +50,13 @@ bot:registerCommand("shutdown", {
 
 
 bot:registerCommand("config show", {
+	args = {{"value", "Configuration value", "word"}},
 	description = "Show the value of a configuration variable",
 	privs = {owner=true},
 	action = function(conn, msg, args)
 		local cur = bot.config
-		if not args[1] then
-			return "No variable.", false
-		end
-		if args[1] ~= "." then
-			for x in args[1]:gmatch("([^%.]+)") do
+		if args.value ~= "." then
+			for x in args.value:gmatch("([^%.]+)") do
 				if type(cur) ~= "table" then
 					return ("Tried to index non-table value with %s."):format(x), false
 				end
@@ -67,7 +65,7 @@ bot:registerCommand("config show", {
 		end
 		local tp = type(cur)
 		local val = dump(cur, "")
-		return ("%s (%s): %s"):format(args[1], tp, val), true
+		return ("%s (%s): %s"):format(args.value, tp, val), true
 	end
 })
 

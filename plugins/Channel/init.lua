@@ -1,40 +1,35 @@
 
 bot:registerCommand("join", {
-	params = "<channel> [key]",
 	description = "Join a channel",
+	args = {{"channel", "Channel",      "word"},
+	        {"key",     "Key/Password", "word", optional=true}},
 	privs = {admin=true},
 	action = function(conn, msg, args)
-		if not args[1] then
-			return "No channel specified.", false
-		end
-		conn:join(args[1], args[2])
+		conn:join(args.channel, args.key)
 		local chans = bot.config.networks[conn.network].channels
-		chans[args[1]] = {
+		chans[args.channel] = {
 			autoJoin = true,
-			key = args[2]
+			key = args.key
 		}
 		bot:saveConfig()
-		return ("Joining %s..."):format(args[1]), true
+		return ("Joining %s..."):format(args.channel), true
 	end
 })
 
 
 bot:registerCommand("part", {
-	params = "<channel> [reason]",
+	args = {{"channel", "Channel",      "word"},
+	        {"message", "Part message", "text", optional=true}},
 	description = "Part a channel",
 	privs = {admin=true},
 	action = function(conn, msg, args)
-		local channel = table.remove(args, 1)
-		if not channel then
-			return "No channel specified.", false
-		end
-		conn:part(channel, table.concat(args, " "))
-		local chan = bot.config.networks[conn.network].channels[channel]
+		conn:part(args.channel, args.message)
+		local chan = bot.config.networks[conn.network].channels[args.channel]
 		if chan then
 			chan.autoJoin = false
 		end
 		bot:saveConfig()
-		return ("Parting %s..."):format(channel), true
+		return ("Parting %s..."):format(args.channel), true
 	end
 })
 
