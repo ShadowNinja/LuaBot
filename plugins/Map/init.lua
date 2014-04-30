@@ -15,7 +15,7 @@ local chansWaiting = {}
 
 
 bot:registerCommand("genmap", {
-	desctiption = "Generate network channel user map",
+	description = "Generate network channel user map",
 	privs = {map=true},
 	action = function(conn, msg, args)
 		waitingListEnd = true
