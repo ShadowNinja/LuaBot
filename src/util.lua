@@ -3,6 +3,9 @@ local socket = require("socket")
 local mime = require("mime")  -- Part of luasocket
 local pretty = require("pl.pretty")
 
+base64e = mime.b64
+base64d = mime.unb64
+
 
 function sleep(s)
 	if s <= 0 then return end
@@ -13,6 +16,7 @@ end
 function dump(data, indent)
 	return pretty.write(data, indent)
 end
+
 
 function bot:getPrivs(user)
 	local privs = {}
@@ -48,6 +52,18 @@ function splitRe(str, re)
 	return t
 end
 
-base64e = mime.b64
-base64d = mime.unb64
+
+function string:findAll(match, start, raw)
+	local positions = {}
+	local nextPos = start
+	local pos = nil
+	repeat
+		pos = self:find(match, nextPos, raw)
+		if pos then
+			table.insert(positions, pos)
+			nextPos = pos + 1
+		end
+	until not pos
+	return positions
+end
 

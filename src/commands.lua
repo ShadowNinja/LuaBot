@@ -36,25 +36,27 @@ end
 function bot:handleCommand(conn, msg, line, opts)
 	opts = opts or {}
 	-- Parse command
-	local def, cmd, args, pos
-	pos = 1
-	repeat
-		pos = line:find(" ", pos, true)
-		if pos then
-			cmd = line:sub(1, pos - 1)
+	local def, cmd, args
+	local positions = line:findAll(' ', 1, true)
+	local num_found = #positions
+	if num_found > 0 then
+		for i = num_found, 1, -1 do
+			local pos = positions[i]
+			local cmd = line:sub(1, pos - 1)
 			args = line:sub(pos + 1)
-			-- Skip space so that we don't find the same one next run
-			pos = pos + 1
-		else
-			cmd = line
-			args = ""
+			def = self.commands[cmd]
+			if def then
+				break
+			end
 		end
+	else
+		cmd = line
+		args = ""
 		def = self.commands[cmd]
-	until def or not pos
-
+	end
 
 	if not def then
-		return ("Unknown command '%s'. Try 'help'."):format(cmd), false
+		return "Unknown command. Try 'help'.", false
 	end
 
 	if def.IRCOnly and not conn then
@@ -94,7 +96,7 @@ function bot:processArgs(args, str)
 		end
 	end
 	if str and str ~= "" then
-		return nil, "Too many arguments "
+		return nil, "Too many arguments"
 	end
 	return a
 end
