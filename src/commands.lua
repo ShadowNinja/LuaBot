@@ -60,7 +60,7 @@ function bot:handleCommand(conn, msg, line, opts)
 			local pos = positions[i]
 			local cmd = line:sub(1, pos - 1)
 			args = line:sub(pos + 1)
-			def = self.commands[cmd]
+			def = self.commands[cmd:lower()]
 			if def then
 				break
 			end
@@ -68,7 +68,7 @@ function bot:handleCommand(conn, msg, line, opts)
 	else
 		cmd = line
 		args = ""
-		def = self.commands[cmd]
+		def = self.commands[cmd:lower()]
 	end
 
 	if not def then
@@ -218,6 +218,12 @@ end
 
 
 function bot:registerCommand(name, def)
+	name = name:lower()
+	assert(not self.commands[name], ("Attempt to create duplicate command '%s'."):format(name))
+	assert(def.action, ("No action provided for command '%s'."):format(name))
+	if not def.description then
+		print(("WARNING: No description provided for command '%s'."):format(name))
+	end
 	def.args = def.args or {}
 	for _, arg in pairs(def.args) do
 		arg.id   = arg.id   or arg[1]
