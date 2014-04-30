@@ -3,27 +3,43 @@ bot.commands = {}
 bot.mores = {}
 
 
--- Check of a IRC message is a command, and call handleCommand if so
-function bot:checkCommand(conn, msg)
-	local prefix = self.config.prefix
-	local nick = conn.nick:lower()
-	local text = msg.args[2]
-	local nickpart = text:sub(1, #nick + 2):lower()
-
+-- Removes prefixes from a command.  Returns nil if there are no prefixes
+function bot:stripPrefix(conn, line)
 	-- First check for a nick prefix
-	if nickpart == nick..": " or nickpart == nick..", " then
-		text = text:sub(#nick + 3)
+	local lnick = conn.nick:lower()
+	local nicklen = #lnick
+	local nickpart = line:sub(1, nicklen):lower()
+	if nickpart == lnick and not line:sub(nicklen + 1, nicklen + 1):isNickChar() then
+		local startPos = line:find("%S", nicklen + 2)
+		if not startPos then
+			return
+		end
+		return line:sub(startPos)
+	end
+
 	-- Then check for the configured prefix
-	elseif prefix and text:sub(1, #prefix):lower() == prefix:lower() then
-		text = text:sub(#prefix + 1)
-	-- Finally, all PMs are commands
-	elseif msg.args[1] == conn.nick then
-		-- Fall through
-	else
+	local prefix = self.config.prefix
+	local prefixlen = #prefix
+	if prefix and line:sub(1, prefixlen):lower() == prefix:lower() then
+		return line:sub(prefixlen + 1)
+	end
+end
+
+
+-- Check if a IRC message is a command, and call handleCommand if so
+function bot:checkCommand(conn, msg)
+	local line = msg.args[2]
+	local command = self:stripPrefix(conn, line)
+	if not command and msg.args[1] == conn.nick then
+		-- PMs don't require a prefix
+		command = line
+	end
+
+	if not command then
 		return false
 	end
 
-	local answer, success = self:handleCommand(conn, msg, text)
+	local answer, success = self:handleCommand(conn, msg, command)
 
 	if answer then
 		self:reply(conn, msg, answer)
@@ -75,12 +91,12 @@ function bot:handleCommand(conn, msg, line, opts)
 	end
 
 	local err
-	args, err = self:processArgs(self.commands[cmd].args, args)
+	args, err = self:processArgs(def.args, args)
 	if err then
 		return err, false
 	end
 
-	return self.commands[cmd].action(conn, msg, args)
+	return def.action(conn, msg, args)
 end
 
 

@@ -67,3 +67,8 @@ function string:findAll(match, start, raw)
 	return positions
 end
 
+
+function string:isNickChar()
+	return self:find("^[a-zA-Z0-9_%-%[|%]%^{|}`]$") ~= nil
+end
+
