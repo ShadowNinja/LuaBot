@@ -2,8 +2,8 @@
 	debug = true,
 	prefix = "!",
 	privs = {
-		["^Project/staff/BotManager$"] = {"owner"},
-		["^Project/staff/"] = {"admin"}
+		["@Project/staff/BotManager$"] = {"owner"},
+		["@Project/staff/"] = {"admin"}
 	},
 	networks = {
 		IRCNet = {
