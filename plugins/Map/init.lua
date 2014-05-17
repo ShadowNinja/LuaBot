@@ -6,7 +6,7 @@
 --]]
 
 local json = require("json")
-
+local m = {commands = {}, hooks = {}}
 local pluginPath, conf = ...
 
 local waitingListEnd = false
@@ -14,7 +14,7 @@ local chanUsers = {}
 local chansWaiting = {}
 
 
-bot:registerCommand("genmap", {
+m.commands.genmap = {
 	description = "Generate network channel user map",
 	privs = {map=true},
 	action = function(conn, msg, args)
@@ -22,7 +22,7 @@ bot:registerCommand("genmap", {
 		conn:queue(irc.Message("LIST"))
 		return "Generating map...", true
 	end,
-})
+}
 
 
 local function generateMap(conn)
@@ -78,29 +78,27 @@ local function generateMap(conn)
 	f:close()
 end
 
-
 -- LIST
-bot:hook("Do322", function(conn, msg)
+function m.hooks:Do322(msg)
 	if not waitingListEnd then
 		return
 	end
 	local channel = msg.args[2]
 	chanUsers[channel] = chanUsers[channel] or {}
 	chansWaiting[channel] = true
-	conn:queue(irc.Message("WHO", {"!"..channel}))
-end)
-
+	self:queue(irc.Message("WHO", {"!"..channel}))
+end
 
 -- End of /LIST
-bot:hook("Do323", function(conn, msg)
+function m.hooks:Do323(msg)
 	if waitingListEnd then
 		waitingListEnd = false
 	end
-end)
+end
 
 
 -- WHO list
-bot:hook("Do352", function(conn, msg)
+function m.hooks:Do352(msg)
 	local channel = msg.args[2]
 	local nick = msg.args[6]
 	if not chansWaiting[channel] then
@@ -109,11 +107,11 @@ bot:hook("Do352", function(conn, msg)
 	if not nick:find("Serv$") then
 		table.insert(chanUsers[channel], nick)
 	end
-end)
+end
 
 
 -- End of /WHO list
-bot:hook("Do315", function(conn, msg)
+function m.hooks:Do315(msg)
 	local channel = msg.args[2]
 	if not chansWaiting[channel] then
 		return
@@ -124,6 +122,8 @@ bot:hook("Do315", function(conn, msg)
 	for _, _ in pairs(chansWaiting) do
 		return
 	end
-	generateMap(conn)
-end)
+	generateMap(self)
+end
+
+return m
 

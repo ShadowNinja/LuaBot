@@ -4,10 +4,13 @@ bot.registeredHooks = {}
 
 
 function bot:hookup(conn)
+	conn.LuaBot_wrapped_hooks = {}
 	for name, hooks in pairs(self.registeredHooks) do
 		for _, func in pairs(hooks) do
 			-- Wrap hooks to pass the Connection to them
-			conn:hook(name, function(...) func(conn, ...) end)
+			local wrappedFunc = function(...) func(conn, ...) end
+			conn.LuaBot_wrapped_hooks[func] = wrappedFunc
+			conn:hook(name, wrappedFunc)
 		end
 	end
 end
@@ -16,6 +19,26 @@ end
 function bot:hook(name, func)
 	self.registeredHooks[name] = self.registeredHooks[name] or {}
 	table.insert(self.registeredHooks[name], func)
+end
+
+
+function bot:unhook(name, func)
+	local registered = self.registeredHooks[name]
+	if not registered then
+		return
+	end
+	for i, f in pairs(registered) do
+		if f == func then
+			registered[i] = nil
+			break
+		end
+	end
+	for _, conn in pairs(self.conns) do
+		local wrappedFunc = conn.LuaBot_wrapped_hooks[func]
+		if wrappedFunc then
+			conn:unhook(name, wrappedFunc)
+		end
+	end
 end
 
 

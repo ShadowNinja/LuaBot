@@ -1,7 +1,7 @@
 
 package.path = package.path .. ";./?/init.lua"
 
-require("irc")
+irc = require("irc")
 require("pl.stringx").import()
 require("pl.strict")
 
@@ -37,7 +37,7 @@ function bot:main()
 	print("Initializing...")
 	self:loadConfig()
 	self:registerHooks()
-	self:loadPlugins()
+	self:loadConfiguredPlugins()
 
 	for name, data in pairs(self.config.networks) do
 		print(("Connecting to %s..."):format(name))
@@ -65,10 +65,17 @@ function bot:main()
 		dtime = os.clock() - loopStart
 		sleep(math.max(0.2 - dtime, 0.1))
 	end
+end
+
+
+function bot:shutdown()
+	print("Shutting down...")
+	self:call("shutdown")
 
 	for _, conn in pairs(self.conns) do
 		self:disconnect(conn.network)
 	end
+	os.exit()
 end
 
 
@@ -107,6 +114,12 @@ function bot:disconnect(name, message)
 	self.conns[name] = nil
 end
 
+-- Try to register a signal handler for SIGINT
+local gotPosix, posix = pcall(require, "posix")
+if gotPosix then
+	posix.signal(posix.SIGINT, function() bot:shutdown() end)
+end
 
 bot:main()
+bot:shutdown()
 

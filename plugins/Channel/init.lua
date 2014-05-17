@@ -1,8 +1,10 @@
 
-bot:registerCommand("join", {
+local m = {commands = {}}
+
+m.commands.join = {
 	description = "Join a channel",
 	args = {{"channel", "Channel",      "word"},
-	        {"key",     "Key/Password", "word", optional=true}},
+		{"key",     "Key/Password", "word", optional=true}},
 	privs = {admin=true},
 	action = function(conn, msg, args)
 		conn:join(args.channel, args.key)
@@ -14,12 +16,11 @@ bot:registerCommand("join", {
 		bot:saveConfig()
 		return ("Joining %s..."):format(args.channel), true
 	end
-})
+}
 
-
-bot:registerCommand("part", {
+m.commands.part = {
 	args = {{"channel", "Channel",      "word"},
-	        {"message", "Part message", "text", optional=true}},
+		{"message", "Part message", "text", optional=true}},
 	description = "Part a channel",
 	privs = {admin=true},
 	action = function(conn, msg, args)
@@ -31,5 +32,7 @@ bot:registerCommand("part", {
 		bot:saveConfig()
 		return ("Parting %s..."):format(args.channel), true
 	end
-})
+}
+
+return m
 

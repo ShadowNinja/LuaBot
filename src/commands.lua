@@ -60,7 +60,7 @@ function bot:handleCommand(conn, msg, line, opts)
 			local pos = positions[i]
 			local cmd = line:sub(1, pos - 1)
 			args = line:sub(pos + 1)
-			def = self.commands[cmd:lower()]
+			def = self:getCommand(cmd)
 			if def then
 				break
 			end
@@ -68,7 +68,7 @@ function bot:handleCommand(conn, msg, line, opts)
 	else
 		cmd = line
 		args = ""
-		def = self.commands[cmd:lower()]
+		def = self:getCommand(cmd)
 	end
 
 	if not def then
@@ -100,15 +100,25 @@ function bot:handleCommand(conn, msg, line, opts)
 end
 
 
+function bot:getCommand(name)
+	name = name:lower()
+	for pluginName, plugin in pairs(self.plugins) do
+		if plugin.commands and plugin.commands[name] then
+			return plugin.commands[name]
+		end
+	end
+end
+
+
 function bot:processArgs(args, str)
 	local a = {}
 	for _, arg in ipairs(args) do
 		local val
 		val, str = self:checkArg(arg, str)
-		if val then
+		if val ~= nil then
 			a[arg.id] = val
 		elseif not arg.optional then
-			return nil, "Required argument missing"
+			return nil, ("Required argument %s missing"):format(arg.name)
 		end
 	end
 	if str and str ~= "" then
@@ -123,12 +133,15 @@ function bot:humanArgs(args)
 	for _, arg in ipairs(args) do
 		local s
 
-		if arg.optional then s = '['
+		if arg.optional or arg.default then s = '['
 		else s = '<' end
 
 		s = s..arg.name
+		if arg.default then
+			s = s.." = "..tostring(arg.default)
+		end
 
-		if arg.optional then s = s..']'
+		if arg.optional or arg.default then s = s..']'
 		else s = s..'>' end
 
 		table.insert(t, s)
@@ -145,6 +158,13 @@ local converters = {
 		local num, rest = args:match("^(%d+)%s?(.*)$")
 		return tonumber(num), rest
 	end,
+	boolean = function(args)
+		local word, rest = args:match("^(%S+)%s?(.*)$")
+		if not word then
+			return nil, rest
+		end
+		return toboolean(word), rest
+	end,
 	text = function(args)
 		return args ~= "" and args or nil, ""
 	end,
@@ -152,11 +172,10 @@ local converters = {
 
 function bot:checkArg(arg, str)
 	assert(converters[arg.type], "No converter for "..arg.type)
-	local val, str = converters[arg.type](str)
-	if val == nil then
-		if arg.required and arg.default then
-			val = arg.default
-		end
+	local val
+	val, str = converters[arg.type](str)
+	if val == nil and arg.default ~= nil then
+		val = arg.default
 	end
 	return val, str
 end
@@ -173,7 +192,7 @@ end
 
 
 function bot:addMore(text, name)
-	bot.mores[name] = splitLen(text, 400)
+	bot.mores[name] = splitLen(text, 380)
 end
 
 
@@ -187,7 +206,7 @@ function bot:getMore(name)
 	end
 	local numMore = #bot.mores[name]
 	if numMore > 0 then
-		text = text .. irc.bold(" (%u more)"):format(#bot.mores[name])
+		text = text .. irc.bold(" (%u more)"):format(numMore)
 	end
 	return text
 end
@@ -204,11 +223,10 @@ end
 
 function bot:reply(conn, msg, text)
 	local replyTo = self:replyTo(conn, msg)
-	local textList = splitRe(text, "[^\r\n]+")
 
-	text = table.concat(textList, " \\n ")
+	text = text:gsub("[\r\n%z]", " \\n ")
+
 	local textLen = #text
-
 	if textLen > 400 then
 		self:addMore(text, msg.user.nick)
 		text = self:getMore(msg.user.nick)
@@ -217,9 +235,7 @@ function bot:reply(conn, msg, text)
 end
 
 
-function bot:registerCommand(name, def)
-	name = name:lower()
-	assert(not self.commands[name], ("Attempt to create duplicate command '%s'."):format(name))
+function bot:checkCommandRegistration(name, def)
 	assert(def.action, ("No action provided for command '%s'."):format(name))
 	if not def.description then
 		print(("WARNING: No description provided for command '%s'."):format(name))
@@ -230,81 +246,5 @@ function bot:registerCommand(name, def)
 		arg.name = arg.name or arg[2]
 		arg.type = arg.type or arg[3]
 	end
-	self.commands[name] = def
 end
-
-
---[[
--- Built-in commands
---]]
-
-bot:registerCommand("help", {
-	args = {{"command", "Command", "text", optional=true}},
-	description = "Get help with a command or list commands",
-	action = function(conn, msg, args)
-		if not args.command then
-			local cmdlist = "Commands: "
-			for name, def in pairs(bot.commands) do
-				cmdlist = cmdlist..name..", "
-			end
-			return cmdlist.."-- Use 'help <command name>' to get"
-					.." help with a specific command.", true
-		end
-
-		local cmd = bot.commands[args.command]
-		if not cmd then
-			return ("Unknown command '%s'."):format(args.command), false
-		end
-
-		return  ("Usage: %s %s -- %s"):format(
-				args.command,
-				bot:humanArgs(cmd.args),
-				cmd.description), true
-	end
-})
-
-
-bot:registerCommand("more", {
-	args = {{"name", "Name", "word", optional=true}},
-	description = "Return more output from a previous command",
-	action = function(conn, msg, args)
-		local name = args.name or msg.user.nick
-		local to = bot:replyTo(conn, msg)
-		local text = bot:getMore(name)
-		if text then
-			return text, true
-		else
-			return "No more!", false
-		end
-	end
-})
-
-
-bot:registerCommand("raw", {
-	args = {{"message", "IRC message", "text"}},
-	description = "Send a raw message to the IRC server",
-	privs = {owner=true},
-	action = function(conn, msg, args)
-		conn:queue(args.message)
-		return "Sent.", true
-	end
-})
-
-
-bot:registerCommand("eval", {
-	args = {{"code", "Lua code", "text"}},
-	description = "Evaluate a chunk of Lua code",
-	privs = {owner=true},
-	action = function(conn, msg, args)
-		local f, err = loadstring(args.code)
-		if f == nil then
-			return err, false
-		end
-		local good, err = pcall(f)
-		if not good then
-			return err, false
-		end
-		return "Code run successfully.", true
-	end
-})
 

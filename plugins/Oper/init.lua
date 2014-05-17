@@ -2,18 +2,19 @@
 -- Plugin to oper-up on connect
 --
 -- Usage:
---  Set plugins.Oper.<network>.username and plugins.Oper.<network>.password in
---  the network block to the oper username and oper password for the bot.
+--  Set oper.username and oper.password in the network block to
+--  the oper username and oper password for the bot.
 --]]
 
-local path, conf = ...
+local m = {hooks = {}}
 
-bot:hook("OnConnect", function(conn)
-	local netConf = conf[conn.network]
+function m.hooks:OnConnect()
+	local netConf = bot.config.networks[self.network].oper
 	if not netConf or not netConf.username or not netConf.password then
 		return
 	end
-	conn:queue(irc.Message("OPER", {netConf.username, netConf.password}))
-end)
+	self:queue(irc.Message("OPER", {netConf.username, netConf.password}))
+end
 
+return m
 
