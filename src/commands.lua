@@ -110,6 +110,33 @@ function bot:getCommand(name)
 end
 
 
+function bot:getPrivs(user)
+	local privs = {}
+	for mask, privSet in pairs(self.config.privs) do
+		local matchStr = ("%s@%s"):format(user.user, user.host)
+		if matchStr:find(mask) then
+			for _, priv in pairs(privSet) do
+				privs[priv] = true
+			end
+		end
+	end
+	return privs
+end
+
+
+function bot:checkPrivs(needs, has, ignoreOwner)
+	if not ignoreOwner and has.owner then
+		return true
+	end
+	for priv, _ in pairs(needs) do
+		if not has[priv] then
+			return false
+		end
+	end
+	return true
+end
+
+
 function bot:processArgs(args, str)
 	local a = {}
 	for _, arg in ipairs(args) do
