@@ -85,3 +85,20 @@ function table.maxn(t)
 	return max
 end
 
+
+local unescapeEnv = {}
+function unescape(s)
+	-- Check for a string closer (eg, [[test", print("foo")]])
+	for slashes in s:gmatch("(\\*)\"") do
+		if #slashes % 2 == 0 then
+			return nil
+		end
+	end
+	local f = load('return "'..s..'"', "UnescapeSandbox", "t", unescapeEnv)
+	local good, str = pcall(f)
+	if good then
+		return str
+	end
+	return nil
+end
+

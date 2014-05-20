@@ -39,3 +39,5 @@ function bot:saveConfig()
 	file:close()
 end
 
+bot:loadConfig()
+

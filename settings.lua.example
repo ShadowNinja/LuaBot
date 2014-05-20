@@ -1,6 +1,7 @@
 {
 	debug = true,
 	prefix = "!",
+	nesting = "<>",  -- Opening and closing characters for command nesting
 	privs = {
 		["@Project/staff/BotManager$"] = {"owner"},
 		["@Project/staff/"] = {"admin"}

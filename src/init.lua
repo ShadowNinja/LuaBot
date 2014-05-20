@@ -35,7 +35,6 @@ end
 
 function bot:main()
 	print("Initializing...")
-	self:loadConfig()
 	self:registerHooks()
 	self:loadConfiguredPlugins()
 

@@ -112,7 +112,7 @@ m.commands.help = {
 
 		local cmd = bot:getCommand(args.command)
 		if not cmd then
-			return ("Unknown command '%s'."):format(args.command), false
+			return ("Unknown command %q."):format(args.command), false
 		end
 
 		return  ("Usage: %s %s -- %s"):format(
@@ -140,17 +140,11 @@ m.commands.more = {
 
 
 m.commands.raw = {
-	args = {{"net",     "Network",     "word", optional=true},
-		{"message", "IRC message", "text"}},
+	args = {{"message", "IRC message", "text"}},
 	description = "Send a raw message to the IRC server",
 	privs = {owner=true},
+	IRCOnly = true,
 	action = function(conn, msg, args)
-		if args.net then
-			conn = bot.conns[args.net]
-		end
-		if not conn then
-			return "Invalid network.", false
-		end
 		conn:queue(args.message)
 		return "Sent.", true
 	end
@@ -164,7 +158,7 @@ m.commands.eval = {
 	action = function(conn, msg, args)
 		if args.code:sub(1, 1) == "=" then
 			args.code = "return "..args.code:sub(2)
-		elseif not args.code:startswith("return") then
+		elseif not args.code:find("return", 1, true) then
 			args.code = "return "..args.code
 		end
 		local f, err = load(args.code, nil, "t")
