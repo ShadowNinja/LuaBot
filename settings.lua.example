@@ -1,28 +1,29 @@
 {
-	debug = true,
+	debug = false,
 	prefix = "!",
 	nesting = "<>",  -- Opening and closing characters for command nesting
-	privs = {
+	privs = {  -- Required
 		["@Project/staff/BotManager$"] = {"owner"},
 		["@Project/staff/"] = {"admin"}
 	},
-	networks = {
+	networks = {  -- Required
 		IRCNet = {
-			nick     = "LuaBot",
+			autoConnect = true,
+			nick     = "LuaBot",  -- Required
 			username = "LuaBot",
 			realname = "LuaBot",
-			host     = "irc.net",
+			host     = "irc.net",  -- Required
 			port     = 6667,
 			secure   = false,
-			channels = {
+			channels = {  -- Required
 				["#bots"] = {
-					autoJoin = true,
+					autoJoin = false,
 				},
 			},
 		},
 	},
 	pluginPaths = {"plugins"},
-	plugins = {
+	plugins = {  -- Required
 		Utilities = true,
 		Channel = true
 	},

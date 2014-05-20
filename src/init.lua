@@ -39,8 +39,10 @@ function bot:main()
 	self:loadConfiguredPlugins()
 
 	for name, data in pairs(self.config.networks) do
-		print(("Connecting to %s..."):format(name))
-		self.conns[name] = self:connect(name, data)
+		if data.autoConnect ~= false then
+			print(("Connecting to %s..."):format(name))
+			self.conns[name] = self:connect(name, data)
+		end
 	end
 
 	print("Entering main loop.")
