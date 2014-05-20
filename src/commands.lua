@@ -1,6 +1,4 @@
 
-local tablex = require("pl.tablex")
-
 bot.commands = {}
 bot.mores = {}
 
@@ -55,8 +53,8 @@ function bot:runCommand(conn, msg, parts, opts)
 	opts = opts or {}
 	-- Milti-word commands work with quotes.  For example:
 	-- > "command with spaces" args
-	local cmd = parts[1]
-	local args = tablex.sub(parts, 2)
+	local cmd = table.remove(parts, 1)
+	local args = parts
 	local def = self:getCommand(cmd)
 
 	if not def then
