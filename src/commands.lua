@@ -39,7 +39,7 @@ function bot:checkCommand(conn, msg)
 		return false
 	end
 
-	local answer, success = self:handleCommand(conn, msg, command)
+	local answer, success = self:handleCommand(command, {conn=conn, msg=msg})
 
 	if answer then
 		self:reply(conn, msg, answer)
@@ -49,7 +49,7 @@ end
 
 
 -- Run a single command
-function bot:runCommand(conn, msg, parts, opts)
+function bot:runCommand(parts, opts)
 	opts = opts or {}
 	-- Milti-word commands work with quotes.  For example:
 	-- > "command with spaces" args
@@ -61,16 +61,19 @@ function bot:runCommand(conn, msg, parts, opts)
 		return ("Unknown command %q. Try \"help\"."):format(cmd), false
 	end
 
-	if def.IRCOnly and not (conn and msg) then
+	if def.IRCOnly and not (opts.conn and opts.msg) then
 		return "This command can only be used from IRC.", false
 	end
 
 	if def.privs then
 		local privs
-		if conn and msg.user then
-			privs = self:getPrivs(msg.user)
+		if opts.privs then
+			privs = opts.privs
+		elseif opts.msg and opts.msg.user then
+			privs = self:getPrivs(opts.msg.user)
+		else
+			privs = {}
 		end
-		privs = privs or opts.privs or {}
 		if not self:checkPrivs(def.privs, privs) then
 			return "Insuficient privileges", false
 		end
@@ -82,7 +85,7 @@ function bot:runCommand(conn, msg, parts, opts)
 		return err, false
 	end
 
-	return def.action(conn, msg, args)
+	return def.action(opts.conn, opts.msg, args)
 end
 
 
@@ -100,8 +103,9 @@ local nesting = bot.config.nesting or "<>"
 local nestingOpen, nestingClose = nesting:sub(1, 1), nesting:sub(2, 2)
 
 
--- Call a command, evaluating nesting and quotes
-function bot:handleCommand(conn, msg, text, opts, findClose)
+-- Call a command, evaluating nesting and quotes.
+-- The findClose argument is for internal use only.
+function bot:handleCommand(text, opts, findClose)
 	local args = {}
 	-- This holds the argument that is currently being read,
 	-- before being save()d into args.
@@ -126,7 +130,7 @@ function bot:handleCommand(conn, msg, text, opts, findClose)
 			-- than it will find it's nesting closer.  This is
 			-- done so that quoted strings and escaped nesting
 			-- closers are skipped over properly.
-			local res, good, endPos = self:handleCommand(conn, msg,
+			local res, good, endPos = self:handleCommand(
 					text:sub(pos + 1), opts, true)
 			if not good then
 				return res, good
@@ -179,7 +183,7 @@ function bot:handleCommand(conn, msg, text, opts, findClose)
 		return "Missing nested command closer.", false
 	end
 	save()
-	local msg, good = self:runCommand(conn, msg, args, opts)
+	local msg, good = self:runCommand(args, opts)
 	return msg, good, pos
 end
 
