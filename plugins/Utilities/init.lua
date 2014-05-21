@@ -44,7 +44,7 @@ m.commands.quit = {
 
 m.commands.shutdown = {
 	description = "Disconnect from all networks and shut down",
-	privs = {"owner"},
+	privs = {"admin"},
 	action = function(conn, msg, args)
 		bot.kill = true
 		return "Shutting down...", true
