@@ -190,7 +190,7 @@ function bot:getPrivs(user)
 		local matchStr = ("%s@%s"):format(user.user, user.host)
 		if matchStr:find(mask) then
 			for _, priv in pairs(privSet) do
-				privs[priv] = true
+				table.insert(privs, priv)
 			end
 		end
 	end
@@ -198,16 +198,33 @@ function bot:getPrivs(user)
 end
 
 
-function bot:checkPrivs(needs, has, ignoreOwner)
+function bot:checkPrivs(needs, has, ignoreOwner, needOnlyOne)
 	if not ignoreOwner and has.owner then
 		return true
 	end
-	for priv, _ in pairs(needs) do
-		if not has[priv] then
+	for _, needPriv in pairs(needs) do
+		local hasCurrent = false
+		if type(needPriv) == "table" then
+			-- List of privs, of which only one is needed
+			hasCurrent = self:checkPrivs(needPriv, has,
+					ignoreOwner, not needOnlyOne)
+		end
+		for _, hasPriv in pairs(has) do
+			if needPriv == hasPriv then
+				hasCurrent = true
+			end
+		end
+		if needOnlyOne and hasCurrent then
+			return true
+		elseif not needOnlyOne and not hasCurrent then
 			return false
 		end
 	end
-	return true
+	if needOnlyOne then
+		return false
+	else
+		return true
+	end
 end
 
 

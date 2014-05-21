@@ -17,7 +17,7 @@ local loadArgs = {
 	{"pluginName", "Plugin name", "word"},
 	{"persist",    "Persist",     "boolean", default=true}
 }
-local loadPrivs = {owner=true}
+local loadPrivs = {"owner"}
 
 m.commands.load = {
 	args = loadArgs,

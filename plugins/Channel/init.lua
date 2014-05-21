@@ -5,7 +5,7 @@ m.commands.join = {
 	description = "Join a channel",
 	args = {{"channel", "Channel",      "word"},
 		{"key",     "Key/Password", "word", optional=true}},
-	privs = {admin=true},
+	privs = {"admin"},
 	action = function(conn, msg, args)
 		conn:join(args.channel, args.key)
 		local chans = bot.config.networks[conn.network].channels
@@ -22,7 +22,7 @@ m.commands.part = {
 	args = {{"channel", "Channel",      "word"},
 		{"message", "Part message", "text", optional=true}},
 	description = "Part a channel",
-	privs = {admin=true},
+	privs = {"admin"},
 	action = function(conn, msg, args)
 		conn:part(args.channel, args.message)
 		local chan = bot.config.networks[conn.network].channels[args.channel]

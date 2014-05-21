@@ -30,7 +30,7 @@ m.commands.uptime = {
 m.commands.quit = {
 	args = {{"message", "Quit message", "text", optional=true}},
 	description = "Disconnect from the current network",
-	privs = {admin=true},
+	privs = {"admin"},
 	IRCOnly = true,
 	action = function(conn, msg, args)
 		-- Wait for our response to get through before disconnecting
@@ -44,7 +44,7 @@ m.commands.quit = {
 
 m.commands.shutdown = {
 	description = "Disconnect from all networks and shut down",
-	privs = {owner=true},
+	privs = {"owner"},
 	action = function(conn, msg, args)
 		bot.kill = true
 		return "Shutting down...", true
@@ -56,7 +56,7 @@ m.commands.config = {
 	args = {{"key",   "Setting key", "word"},
 	        {"value", "Value",       "text", optional=true}},
 	description = "View or set the value of a configuration variable",
-	privs = {owner=true},
+	privs = {"owner"},
 	action = function(conn, msg, args)
 		-- We keep track of the last table we were in and the next key,
 		-- rather than just navigating down the tree, because we need
@@ -142,7 +142,7 @@ m.commands.more = {
 m.commands.raw = {
 	args = {{"message", "IRC message", "text"}},
 	description = "Send a raw message to the IRC server",
-	privs = {owner=true},
+	privs = {"owner"},
 	IRCOnly = true,
 	action = function(conn, msg, args)
 		conn:queue(args.message)
@@ -154,7 +154,7 @@ m.commands.raw = {
 m.commands.eval = {
 	args = {{"code", "Lua code", "text"}},
 	description = "Evaluate a chunk of Lua code",
-	privs = {owner=true},
+	privs = {"owner"},
 	action = function(conn, msg, args)
 		if args.code:sub(1, 1) == "=" then
 			args.code = "return "..args.code:sub(2)
