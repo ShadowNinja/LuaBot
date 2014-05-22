@@ -1,4 +1,6 @@
 
+local tablex = require("pl.tablex")
+
 bot.commands = {}
 bot.mores = {}
 
@@ -203,7 +205,7 @@ end
 
 
 function bot:checkPrivs(needs, has, ignoreOwner, needOnlyOne)
-	if not ignoreOwner and has.owner then
+	if not ignoreOwner and tablex.find(has, "owner") then
 		return true
 	end
 	for _, needPriv in pairs(needs) do
@@ -212,11 +214,8 @@ function bot:checkPrivs(needs, has, ignoreOwner, needOnlyOne)
 			-- List of privs, of which only one is needed
 			hasCurrent = self:checkPrivs(needPriv, has,
 					ignoreOwner, not needOnlyOne)
-		end
-		for _, hasPriv in pairs(has) do
-			if needPriv == hasPriv then
-				hasCurrent = true
-			end
+		elseif tablex.find(has, needPriv) then
+			hasCurrent = true
 		end
 		if needOnlyOne and hasCurrent then
 			return true
