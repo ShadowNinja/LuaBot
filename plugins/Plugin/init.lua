@@ -46,5 +46,16 @@ m.commands.reload = {
 	end
 }
 
+m.commands.plugins = {
+	description = "List all loaded plugins",
+	action = function(conn, msg, args)
+		local names = {}
+		for name, _ in pairs(bot.plugins) do
+			table.insert(names, name)
+		end
+		return table.concat(names, ", "), true
+	end,
+}
+
 return m
 
