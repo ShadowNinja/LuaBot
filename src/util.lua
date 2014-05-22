@@ -33,7 +33,7 @@ end
 
 
 function dump(data, indent)
-	return pretty.write(data, indent)
+	return pretty.write(data, indent or "\t")
 end
 
 
