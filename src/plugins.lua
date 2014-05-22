@@ -75,15 +75,13 @@ local function cleanup(plugin)
 end
 
 
-function bot:unloadPlugin(name, persist, reloading)
+function bot:unloadPlugin(name, persist)
 	if not self.plugins[name] then
 		return false, "Plugin not loaded"
 	end
 	self:call("pluginUnload", name)
 	local plugin = self.plugins[name]
-	if reloading and type(plugin.reload) == "function" then
-		plugin:reload()
-	elseif type(plugin.unload) == "function" then
+	if type(plugin.unload) == "function" then
 		plugin:unload()
 	end
 	cleanup(plugin)
@@ -102,7 +100,7 @@ end
 
 
 function bot:reloadPlugin(name, persist)
-	local good, msg = self:unloadPlugin(name, persist, true)
+	local good, msg = self:unloadPlugin(name, persist)
 	if not good then
 		return good, msg
 	end
