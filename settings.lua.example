@@ -1,7 +1,13 @@
 {
-	debug = false,
 	prefix = "!",
 	nesting = "<>",  -- Opening and closing characters for command nesting
+	flushInterval = 300,
+	log = {  -- Required
+		color = true,
+		filename = nil,
+		-- Also "debug".  "important" is always printed.
+		levels = {"error", "warning", "action", "info"},
+	},
 	privs = {  -- Required
 		["@Project/staff/BotManager$"] = {"owner"},
 		["@Project/staff/"] = {"admin"}

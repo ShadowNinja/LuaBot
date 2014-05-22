@@ -47,7 +47,7 @@ function bot:loadPlugin(name, persist, conf)
 	end
 	local good, plugin = xpcall(func, debug.traceback, pluginPath, conf)
 	if not good then
-		print(plugin)
+		bot:log("error", plugin)
 		return nil, plugin
 	end
 	plugin = plugin or {}

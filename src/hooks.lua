@@ -58,7 +58,7 @@ function bot.hooks:caplist()
 		if self.availableCapabilities.sasl then
 			self:queue(irc.Message("CAP", {"REQ", "sasl"}))
 		else
-			print("SASL configured but not available!")
+			bot:log("error", "SASL configured but not available!")
 		end
 	end
 end
@@ -123,11 +123,11 @@ end
 
 local function debugHook(name)
 	return function(conn, line)
-		print(("[%s] %s (%s): %s"):format(
-			os.date("%H:%m:%S"),
+		bot:log("debug", ("%s (%s): %s"):format(
 			name,
 			conn.network,
-			line))
+			line
+		))
 	end
 end
 
@@ -139,9 +139,7 @@ function bot:registerHooks()
 	self:hook("DoPrivmsg", bot.hooks.privmsg)
 	self:hook("OnCTCP", bot.hooks.ctcp)
 
-	if self.config.debug then
-		self:hook("OnRaw", debugHook("RECV"))
-		self:hook("OnSend", debugHook("SEND"))
-	end
+	self:hook("OnRaw", debugHook("RECV"))
+	self:hook("OnSend", debugHook("SEND"))
 end
 

@@ -1,6 +1,7 @@
 
 package.path = package.path .. ";./?/init.lua"
 
+local socket = require("socket")
 irc = require("irc")
 require("pl.stringx").import()
 require("pl.strict")
@@ -20,37 +21,38 @@ loadFile("register")
 loadFile("schedule")
 loadFile("plugins")
 loadFile("commands")
+loadFile("log")
 
 
 local function safeThink(conn)
-	-- We need the wrapper function to pass the implice self parameter
+	-- We need the wrapper function to pass the implict self parameter
 	local good, errMsg = xpcall(function()
 			conn:think()
 		end, debug.traceback)
 	if not good then
-		print(errMsg)
+		bot:log("error", errMsg)
 	end
 	return good
 end
 
 function bot:main()
-	print("Initializing...")
+	bot:log("info", "Initializing...")
 	self:registerHooks()
 	self:loadConfiguredPlugins()
 
 	for name, data in pairs(self.config.networks) do
 		if data.autoConnect ~= false then
-			print(("Connecting to %s..."):format(name))
+			bot:log("info", ("Connecting to %s..."):format(name))
 			self.conns[name] = self:connect(name, data)
 		end
 	end
 
-	print("Entering main loop.")
-	local dtime = 0
+	bot:log("info", "Entering main loop.")
+	local stepTime, stepTimeNoSleep = 0, 0
 	while not self.kill do  -- Main loop
-		local loopStart = os.clock()
+		local stepStart = socket.gettime()
 
-		self:call("step", dtime)
+		self:call("step", stepTime, stepTimeNoSleep)
 
 		local numConns = 0
 		for _, conn in pairs(self.conns) do
@@ -59,18 +61,19 @@ function bot:main()
 		end
 
 		if numConns < 1 then
-			print("All connections closed.  Shutting down.")
+			bot:log("important", "All connections closed.  Shutting down.")
 			break
 		end
 
-		dtime = os.clock() - loopStart
-		sleep(math.max(0.2 - dtime, 0.1))
+		stepTimeNoSleep = socket.gettime() - stepStart
+		sleep(math.max(0.2 - stepTimeNoSleep, 0.1))
+		stepTime = socket.gettime() - stepStart
 	end
 end
 
 
 function bot:shutdown()
-	print("Shutting down...")
+	bot:log("info", "Shutting down...")
 	self:call("shutdown")
 
 	for _, conn in pairs(self.conns) do
@@ -114,6 +117,28 @@ function bot:disconnect(name, message)
 	conn:disconnect(message or self.config.quitMessage)
 	self.conns[name] = nil
 end
+
+
+local flushInterval = bot.config.flushInterval or 300
+local flushCount = 0
+
+function bot:flush(final)
+	flushCount = 0
+	bot:log("debug", "Flushing...")
+	bot:call("flush", final)
+end
+
+bot:register("step", function(dtime)
+	flushCount = flushCount + dtime
+	if flushCount > flushInterval then
+		bot:flush(false)
+	end
+end)
+
+bot:register("shutdown", function()
+	bot:flush(true)
+end)
+
 
 -- Try to register a signal handler for SIGINT
 local gotPosix, posix = pcall(require, "posix")

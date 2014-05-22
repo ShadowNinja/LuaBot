@@ -354,7 +354,9 @@ end
 function bot:checkCommandRegistration(name, def)
 	assert(def.action, ("No action provided for command %q."):format(name))
 	if not def.description then
-		print(("WARNING: No description provided for command %q."):format(name))
+		self:log("warning",
+			("No description provided for command %q.")
+				:format(name))
 	end
 	def.args = def.args or {}
 	for _, arg in pairs(def.args) do
