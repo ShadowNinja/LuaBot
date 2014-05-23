@@ -66,6 +66,11 @@ function string:isNickChar()
 end
 
 
+function string:isValidNick()
+	return self:find("^[a-zA-Z_%-%[|%]%^{|}`][a-zA-Z0-9_%-%[|%]%^{|}`]*$") ~= nil
+end
+
+
 function string:max(maxLen)
 	assert(maxLen >= 3, "Argument to string.max must be at least 3")
 	if #self > maxLen then
