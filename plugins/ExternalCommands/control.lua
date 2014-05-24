@@ -81,7 +81,9 @@ while run do
 	end
 	local text
 	status, text = runCommand(command)
-	print(text)
+	if text ~= "" then
+		print(text)
+	end
 end
 
 conn:close()

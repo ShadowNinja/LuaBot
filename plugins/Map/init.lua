@@ -17,10 +17,11 @@ local chansWaiting = {}
 m.commands.genmap = {
 	description = "Generate network channel user map",
 	privs = {"map"},
+	IRCOnly = true,
 	action = function(conn, msg, args)
 		waitingListEnd = true
 		conn:queue(irc.Message("LIST"))
-		return "Generating map...", true
+		return true, "Generating map..."
 	end,
 }
 

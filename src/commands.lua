@@ -41,7 +41,7 @@ function bot:checkCommand(conn, msg)
 		return false
 	end
 
-	local answer, success = self:handleCommand(command, {conn=conn, msg=msg})
+	local success, answer = self:handleCommand(command, {conn=conn, msg=msg})
 
 	if answer then
 		self:reply(conn, msg, answer)
@@ -60,11 +60,11 @@ function bot:runCommand(parts, opts)
 	local def = self:getCommand(cmd)
 
 	if not def then
-		return ("Unknown command %q. Try \"help\"."):format(cmd), false
+		return false, ("Unknown command %q. Try \"help\"."):format(cmd)
 	end
 
 	if def.IRCOnly and not (opts.conn and opts.msg) then
-		return "This command can only be used from IRC.", false
+		return false, "This command can only be used from IRC."
 	end
 
 	if def.privs then
@@ -77,14 +77,14 @@ function bot:runCommand(parts, opts)
 			privs = {}
 		end
 		if not self:checkPrivs(def.privs, privs) then
-			return "Insuficient privileges", false
+			return false, "Insuficient privileges"
 		end
 	end
 
 	local err
 	args, err = self:processArgs(def.args, args)
 	if err then
-		return err, false
+		return false, err
 	end
 
 	return def.action(opts.conn, opts.msg, args)
@@ -132,10 +132,10 @@ function bot:handleCommand(text, opts, findClose)
 			-- than it will find it's nesting closer.  This is
 			-- done so that quoted strings and escaped nesting
 			-- closers are skipped over properly.
-			local res, good, endPos = self:handleCommand(
+			local good, res, endPos = self:handleCommand(
 					text:sub(pos + 1), opts, true)
 			if not good then
-				return res, good
+				return good, res
 			end
 			-- Only add the result to the buffer.  This allows you
 			-- to concatenate the result of multiple commands, and
@@ -149,7 +149,7 @@ function bot:handleCommand(text, opts, findClose)
 				foundClose = true
 				break
 			else
-				return "Unexpected nested command closer.", false
+				return false, "Unexpected nested command closer."
 			end
 		elseif c == '"' then
 			save()
@@ -161,15 +161,15 @@ function bot:handleCommand(text, opts, findClose)
 			repeat
 				_, endPos, slashes = text:find("(\\*)\"", endPos + 1)
 				if not endPos then
-					return "No end to quoted string.", false
+					return false, "No end to quoted string."
 				end
 			until #slashes % 2 == 0
 
 			-- Try to unescape the string.
 			local str = unescape(text:sub(pos + 1, endPos - 1))
 			if not str then
-				return ("Unable to read string \"%s\"")
-					:format(text:sub(pos + 1, endPos - 1)), false
+				return false, ("Unable to read string \"%s\"")
+					:format(text:sub(pos + 1, endPos - 1))
 			end
 
 			table.insert(args, str)
@@ -182,11 +182,11 @@ function bot:handleCommand(text, opts, findClose)
 		pos = pos + 1
 	end
 	if findClose and not foundClose then
-		return "Missing nested command closer.", false
+		return false, "Missing nested command closer."
 	end
 	save()
-	local msg, good = self:runCommand(args, opts)
-	return msg, good, pos
+	local good, msg = self:runCommand(args, opts)
+	return good, msg, pos
 end
 
 
@@ -276,7 +276,9 @@ local converters = {
 	boolean = function(args) return toboolean(table.remove(args, 1)) end,
 	word = function(args)
 		local text = table.remove(args, 1)
-		if text:find("[\t\n\r%z ]") then return nil end
+		if not text or text:find("[\t\n\r%z ]") then
+			return nil
+		end
 		return text
 	end,
 	text = function(args)

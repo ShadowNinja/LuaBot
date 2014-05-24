@@ -75,9 +75,9 @@ function notation (`bot:funcName()`):
   * `stripCommand(line)` - Removes command characters such as prefixes from
 	the line and returns the command, ready for processing.  Returns nil
 	if there are no command characters.
-  * `handleCommand(line, opts)` - Parses the command in `line` and
-	runs it.  `opts` is a table containing options for the command, it may
-	contain the fields `conn`, `msg`, and `privs`.
+  * `handleCommand(line, opts)` - Parses the command in `line` and runs it.
+	`opts` is a table containing options for the command, it may contain
+	the fields `conn`, `msg`, and `privs`.
   * `schedule(after, repeats, func, ...)` - Schedules a function `func` to be
 	called after `after` seconds have passed, and every `after` seconds if
 	`repeats` is true.  `...` contains arguments to be passed to the
@@ -110,8 +110,8 @@ are optional:
 	This function is passed, in order: the connection than the command was
 	called from, the message that triggered the command (in the form of a
 	Message object, see the LuaIRC documentation), the command's arguments
-	(See [Argument Table](#argument-table)).  It must return some
-	response text and a status code.
+	(See [Argument Table](#argument-table)).  It must return a boolean
+	indicating success, and may return some response text.
 
 
 Here is an example of a command definition for a simple command that converts
@@ -123,7 +123,7 @@ it's argument to lowercase:
 	privs = {},  -- Optional
 	IRCOnly = false,  -- Optional
 	action = function(conn, msg, args)
-		return args.str:lower(), true
+		return true, args.str:lower()
 	end,
 }
 ```

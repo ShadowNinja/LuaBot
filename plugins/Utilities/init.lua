@@ -7,7 +7,7 @@ local m = {commands = {}}
 m.commands.ping = {
 	description = "Check lag",
 	action = function(conn, msg, args)
-		return "Pong", true
+		return true, "Pong"
 	end
 }
 
@@ -17,12 +17,12 @@ m.commands.uptime = {
 	description = "Tell how long the bot has been running",
 	action = function(conn, msg, args)
 		local diff = os.difftime(os.time(), starttime)
-		return ("Up %dd, %d:%02d:%02d"):format(
+		return true, ("Up %dd, %d:%02d:%02d"):format(
 			math.floor(diff / 60 / 60 / 24),
 			math.floor(diff / 60 / 60) % 24,
 			math.floor(diff / 60) % 60,
 			math.floor(diff) % 60
-		), true
+		)
 	end
 }
 
@@ -37,7 +37,7 @@ m.commands.quit = {
 		local reason = args.message or ("Disconnect requested by %s.")
 				:format(msg.user.nick)
 		bot.schedule:add(1, bot.disconnect, bot, conn.network, reason)
-		return "Disconnecting...", true
+		return true, "Disconnecting..."
 	end
 }
 
@@ -47,7 +47,7 @@ m.commands.shutdown = {
 	privs = {"admin"},
 	action = function(conn, msg, args)
 		bot.kill = true
-		return "Shutting down...", true
+		return true, "Shutting down..."
 	end
 }
 
@@ -67,7 +67,8 @@ m.commands.config = {
 			for key in args.key:gmatch("([^%.]+)") do
 				last = last[nextKey]
 				if type(last) ~= "table" then
-					return ("Tried to index non-table value with %s."):format(key), false
+					return true, ("Tried to index non-table"
+						.." value with %q."):format(key)
 				end
 				nextKey = key
 			end
@@ -77,7 +78,7 @@ m.commands.config = {
 			bot:saveConfig()
 		end
 		local val = dump(last[nextKey], "")
-		return ("%s = %s"):format(args.key, val), true
+		return true, ("%s = %s"):format(args.key, val)
 	end
 }
 
@@ -104,21 +105,22 @@ m.commands.help = {
 	description = "Get help with a command or list commands",
 	action = function(conn, msg, args)
 		if not args.command then
-			return "Commands: "
+			return true, "Commands: "
 				..getCommandList()
 				.." -- Use 'help <command name>' to get"
-				.." help with a specific command.", true
+				.." help with a specific command."
 		end
 
 		local cmd = bot:getCommand(args.command)
 		if not cmd then
-			return ("Unknown command %q."):format(args.command), false
+			return false, ("Unknown command %q.")
+					:format(args.command)
 		end
 
-		return  ("Usage: %s %s -- %s"):format(
+		return  true, ("Usage: %s %s -- %s"):format(
 				args.command,
 				bot:humanArgs(cmd.args),
-				cmd.description), true
+				cmd.description)
 	end
 }
 
@@ -126,14 +128,15 @@ m.commands.help = {
 m.commands.more = {
 	args = {{"name", "Name", "word", optional=true}},
 	description = "Return more output from a previous command",
+	IRCOnly = true,
 	action = function(conn, msg, args)
 		local name = args.name or msg.user.nick
 		local to = bot:replyTo(conn, msg)
 		local text = bot:getMore(name)
 		if text then
-			return text, true
+			return true, text
 		else
-			return "No more!", false
+			return false, "No more!"
 		end
 	end
 }
@@ -146,7 +149,7 @@ m.commands.raw = {
 	IRCOnly = true,
 	action = function(conn, msg, args)
 		conn:queue(args.message)
-		return "Sent.", true
+		return true, "Sent."
 	end
 }
 
@@ -163,23 +166,21 @@ m.commands.eval = {
 		end
 		local f, err = load(args.code, nil, "t")
 		if f == nil then
-			return err, false
+			return false, err
 		end
-		local ret
-		local good, err = pcall(function()
-			ret = {f()}
-		end)
+		local ret = {pcall(f)}
+		local good = table.remove(ret, 1)
 		if not good then
-			return err, false
+			return false, table.remove(ret, 1)
 		end
 		local numret = table.maxn(ret)
 		if numret > 0 then
 			for i = 1, numret do
 				ret[i] = dump(ret[i], "")
 			end
-			return table.concat(ret, ", "), true
+			return true, table.concat(ret, ", ")
 		else
-			return "Code successfully executed with no results.", true
+			return true, "Code successfully executed with no results."
 		end
 	end
 }
@@ -189,7 +190,7 @@ m.commands.echo = {
 	args = {{"text", "Text", "text"}},
 	description = "Say something",
 	action = function(conn, msg, args)
-		return args.text, true
+		return true, args.text
 	end
 }
 

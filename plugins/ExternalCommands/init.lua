@@ -50,10 +50,13 @@ function m.on.step()
 		local line, errMsg = client:receive("*l")
 		if line then
 			local id, cmd = line:match("(%S+) (.+)")
-			assert(id, ("Invalid command message %q received."):format(line))
-			bot:log("action", ("External command (id: %s): %s"):format(id, cmd))
-			local text, status = bot:handleCommand(cmd, cmdOpts)
-			local good, errMsg = client:send(("%s %s %s\n"):format(id, status, text))
+			assert(id, ("Invalid command message %q received.")
+					:format(line))
+			bot:log("action", ("External command (id: %s): %s")
+					:format(id, cmd))
+			local status, text = bot:handleCommand(cmd, cmdOpts)
+			local good, errMsg = client:send(("%s %s %s\n")
+					:format(id, status, text or ""))
 			if not good then
 				bot:log("error", "While sending command response: "..errMsg)
 			end

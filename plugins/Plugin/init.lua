@@ -5,11 +5,14 @@
 local m = {commands = {}}
 
 local function pluginOp(args, op)
+	if not args.pluginName then
+		return false, "No plugin name provided"
+	end
 	local good, errMsg = bot[op.."Plugin"](bot, args.pluginName, args.persist)
 	if not good then
-		return ("Failed to %s plugin: %s"):format(op, errMsg:max(300)), false
+		return false, ("Failed to %s plugin: %s"):format(op, errMsg:max(300))
 	end
-	return ("Plugin successfully %sed."):format(op), true
+	return true, ("Plugin successfully %sed."):format(op)
 end
 
 
@@ -53,7 +56,7 @@ m.commands.plugins = {
 		for name, _ in pairs(bot.plugins) do
 			table.insert(names, name)
 		end
-		return table.concat(names, ", "), true
+		return true, table.concat(names, ", ")
 	end,
 }
 

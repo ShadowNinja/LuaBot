@@ -6,7 +6,10 @@ bot.plugins = {}
 function bot:loadConfiguredPlugins()
 	for name, conf in pairs(self.config.plugins) do
 		if conf and not (type(conf) == "table" and conf.unloaded) then
-			self:loadPlugin(name, false, conf)
+			local good, errMsg = self:loadPlugin(name, false, conf)
+			if not good then
+				self:log("error", errMsg)
+			end
 		end
 	end
 end
