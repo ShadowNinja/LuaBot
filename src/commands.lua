@@ -105,9 +105,7 @@ local nesting = bot.config.nesting or "<>"
 local nestingOpen, nestingClose = nesting:sub(1, 1), nesting:sub(2, 2)
 
 
--- Call a command, evaluating nesting and quotes.
--- The findClose argument is for internal use only.
-function bot:handleCommand(text, opts, findClose)
+function bot:parseCommand(text, findClose)
 	local args = {}
 	-- This holds the argument that is currently being read,
 	-- before being save()d into args.
@@ -128,21 +126,17 @@ function bot:handleCommand(text, opts, findClose)
 			pos = pos + 1
 			argBuffer = argBuffer .. text:sub(pos, pos)
 		elseif c == nestingOpen then
-			-- Handle the command, passing findClose as true so
-			-- than it will find it's nesting closer.  This is
+			save()
+			-- Parse the nested command, passing findClose as true
+			-- so that it will find it's nesting closer.  This is
 			-- done so that quoted strings and escaped nesting
 			-- closers are skipped over properly.
-			local good, res, endPos = self:handleCommand(
-					text:sub(pos + 1), opts, true)
-			if not good then
-				return good, res
+			local res, endPos = self:parseCommand(
+					text:sub(pos + 1), true)
+			if not res then
+				return res, endPos
 			end
-			-- Only add the result to the buffer.  This allows you
-			-- to concatenate the result of multiple commands, and
-			-- regular arguments, into one argument.  For example:
-			-- > echo a<echo b>c <echo foo><echo bar>
-			-- abc foobar
-			argBuffer = argBuffer .. res
+			table.insert(args, res)
 			pos = pos + endPos  -- Incremented below
 		elseif c == nestingClose then
 			if findClose then
@@ -185,8 +179,24 @@ function bot:handleCommand(text, opts, findClose)
 		return false, "Missing nested command closer."
 	end
 	save()
-	local good, msg = self:runCommand(args, opts)
-	return good, msg, pos
+	return args, pos
+end
+
+
+function bot:evalCommand(args, opts)
+	for i, arg in ipairs(args) do
+		if type(arg) == "table" then
+			args[i] = select(2, self:evalCommand(arg, opts))
+		end
+	end
+	return self:runCommand(args, opts)
+end
+
+
+function bot:handleCommand(text, opts)
+	local args, msg = self:parseCommand(text)
+	if not args then return false, msg end
+	return self:evalCommand(args, opts)
 end
 
 
