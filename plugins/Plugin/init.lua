@@ -10,6 +10,7 @@ local function pluginOp(args, op)
 	end
 	local good, errMsg = bot[op.."Plugin"](bot, args.pluginName, args.persist)
 	if not good then
+		bot:log("error", errMsg)
 		return false, ("Failed to %s plugin: %s"):format(op, errMsg:max(300))
 	end
 	return true, ("Plugin successfully %sed."):format(op)
