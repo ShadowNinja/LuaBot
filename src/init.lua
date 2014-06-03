@@ -120,20 +120,13 @@ end
 
 
 local flushInterval = bot.config.flushInterval or 300
-local flushCount = 0
 
 function bot:flush(final)
-	flushCount = flushCount - flushInterval
 	bot:log("debug", "Flushing...")
 	bot:call("flush", final)
 end
 
-bot:register("step", function(dtime)
-	flushCount = flushCount + dtime
-	if flushCount >= flushInterval then
-		bot:flush(false)
-	end
-end)
+bot:schedule(flushInterval, true, bot.flush, bot, false)
 
 bot:register("shutdown", function()
 	bot:flush(true)
