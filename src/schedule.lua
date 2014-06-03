@@ -30,7 +30,7 @@ bot:register("step", function(dtime)
 		if (event.time + event.after) <= time then
 			event.func(table.unpack(event.args))
 			if event.repeats then
-				event.time = time
+				event.time = event.time + event.after
 				i = i + 1
 			else
 				table.remove(events, i)
