@@ -8,7 +8,7 @@ function bot:hookup(conn)
 	for name, hooks in pairs(self.registeredHooks) do
 		for _, func in pairs(hooks) do
 			-- Wrap hooks to pass the Connection to them
-			local wrappedFunc = function(...) func(conn, ...) end
+			local wrappedFunc = function(...) return func(conn, ...) end
 			conn.LuaBot_wrapped_hooks[func] = wrappedFunc
 			conn:hook(name, wrappedFunc)
 		end
