@@ -10,6 +10,9 @@ bot = {}
 bot.versionString = "LuaBot 0.1"
 bot.conns = {}
 
+-- LuaJIT compatability
+table.unpack = table.unpack or unpack
+
 local function loadFile(name)
 	dofile(("src/%s.lua"):format(name))
 end
