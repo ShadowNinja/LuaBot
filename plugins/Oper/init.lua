@@ -13,7 +13,7 @@ function m.hooks:OnConnect()
 	if not netConf or not netConf.username or not netConf.password then
 		return
 	end
-	self:queue(irc.Message("OPER", {netConf.username, netConf.password}))
+	self:queue(irc.Message({command="OPER", args={netConf.username, netConf.password}}))
 end
 
 return m

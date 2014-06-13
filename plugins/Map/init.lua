@@ -20,7 +20,7 @@ m.commands.genmap = {
 	IRCOnly = true,
 	action = function(conn, msg, args)
 		waitingListEnd = true
-		conn:queue(irc.Message("LIST"))
+		conn:queue(irc.Message({command="LIST"}))
 		return true, "Generating map..."
 	end,
 }
@@ -87,7 +87,7 @@ function m.hooks:Do322(msg)
 	local channel = msg.args[2]
 	chanUsers[channel] = chanUsers[channel] or {}
 	chansWaiting[channel] = true
-	self:queue(irc.Message("WHO", {"!"..channel}))
+	self:queue(irc.Message({command="WHO", args={"!"..channel}}))
 end
 
 -- End of /LIST
