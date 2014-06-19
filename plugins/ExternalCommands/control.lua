@@ -63,7 +63,7 @@ end
 
 print("LuaBot external command sender.")
 print("Connected to unix:"..filename)
-print("Type an empty line to quit.")
+print("Type an empty line or EOF (Control-D) to quit.")
 
 local status = true
 while run do
@@ -76,7 +76,10 @@ while run do
 		io.flush()
 		command = io.read()
 	end
-	if command == "" then
+	if not command then
+		io.write('\n')
+		break
+	elseif command == "" then
 		break
 	end
 	local text
