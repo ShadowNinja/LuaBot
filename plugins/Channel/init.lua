@@ -1,11 +1,13 @@
 
 local m = {commands = {}}
 
+local channelPrivs = {"admin"}
+
 m.commands.join = {
 	description = "Join a channel",
-	args = {{"channel", "Channel",      "word"},
+	args = {{"channel", "Channel",      "channel"},
 		{"key",     "Key/Password", "word", optional=true}},
-	privs = {"admin"},
+	privs = channelPrivs,
 	IRCOnly = true,
 	action = function(conn, msg, args)
 		conn:join(args.channel, args.key)
@@ -20,10 +22,10 @@ m.commands.join = {
 }
 
 m.commands.part = {
-	args = {{"channel", "Channel",      "word"},
+	args = {{"channel", "Channel",      "channel"},
 		{"message", "Part message", "text", optional=true}},
 	description = "Part a channel",
-	privs = {"admin"},
+	privs = channelPrivs,
 	IRCOnly = true,
 	action = function(conn, msg, args)
 		conn:part(args.channel, args.message)
@@ -35,6 +37,32 @@ m.commands.part = {
 		return true, ("Parting %s..."):format(args.channel)
 	end
 }
+
+
+local modeSetterArgs = {
+	{"channel", "Channel",  "channel"},
+	{"nick",    "Nickname", "nick"},
+}
+local function modeSetter(modeString, desc)
+	return {
+		args = modeSetterArgs,
+		description = desc,
+		privs = channelPrivs,
+		IRCOnly = true,
+		action = function(conn, msg, args)
+			conn:queue(irc.Message({
+				command = "MODE",
+				args = {args.channel, modeString, args.nick},
+			}))
+			return true
+		end,
+	}
+end
+
+m.commands.op      = modeSetter("+o", "Promote a channel member to channel operator status.")
+m.commands.deop    = modeSetter("-o", "Remove channel operator status from a channel member.")
+m.commands.voice   = modeSetter("+v", "Give a channel member voice.")
+m.commands.devoice = modeSetter("-v", "Remove a channel member's voice.")
 
 return m
 
