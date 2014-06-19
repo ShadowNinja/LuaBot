@@ -203,7 +203,7 @@ end
 function bot:getPrivs(user)
 	local privs = {}
 	for mask, privSet in pairs(self.config.privs) do
-		local matchStr = ("%s@%s"):format(user.user, user.host)
+		local matchStr = ("%s@%s"):format(user.username, user.host)
 		if matchStr:find(mask) then
 			for _, priv in pairs(privSet) do
 				table.insert(privs, priv)
