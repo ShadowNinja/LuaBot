@@ -82,7 +82,7 @@ function bot:runCommand(parts, opts)
 	end
 
 	local err
-	args, err = self:processArgs(def.args, args)
+	args, err = self:processArgs(opts.conn, opts.msg, def.args, args)
 	if err then
 		return false, err
 	end
@@ -241,10 +241,10 @@ function bot:checkPrivs(needs, has, ignoreOwner, needOnlyOne)
 end
 
 
-function bot:processArgs(args, argList)
+function bot:processArgs(conn, msg, args, argList)
 	local a = {}
 	for _, arg in ipairs(args) do
-		local val = self:checkArg(arg, argList)
+		local val = self:checkArg(conn, msg, arg, argList)
 		if val ~= nil then
 			a[arg.id] = val
 		elseif not arg.optional then
@@ -279,19 +279,36 @@ function bot:humanArgs(args)
 	return table.concat(t, ' ')
 end
 
+-- Converters are functions that process a command argument.
+-- They are passed the Connection, Message, and argument list.
+-- The Connection and Message may be nil.
+-- The argument list must be modified in-place to remove any processed arguments.
 -- Converters return the processed argument, or nil on failure
 local converters = {
-	string  = function(args) return           table.remove(args, 1)  end,
-	number  = function(args) return tonumber (table.remove(args, 1)) end,
-	boolean = function(args) return toboolean(table.remove(args, 1)) end,
-	word = function(args)
-		local text = table.remove(args, 1)
-		if not text or text:find("[\t\n\r%z ]") then
+	string  = function(conn, msg, args) return           table.remove(args, 1)  end,
+	number  = function(conn, msg, args) return tonumber (table.remove(args, 1)) end,
+	boolean = function(conn, msg, args) return toboolean(table.remove(args, 1)) end,
+	channel = function(conn, msg, args)
+		if args[1] and bot:isChannel(args[1], conn) then
+			return table.remove(args, 1)
+		elseif msg and bot:isChannel(msg.args[1], conn) then
+			return msg.args[1]
+		end
+	end,
+	nick = function(conn, msg, args)
+		if args[1] and bot:isNick(args[1]) then
+			return table.remove(args, 1)
+		elseif msg then
+			return msg.user.nick
+		end
+	end,
+	word = function(conn, msg, args)
+		if not args[1] or args[1]:find("[\t\n\r%z ]") then
 			return nil
 		end
-		return text
+		return table.remove(args, 1)
 	end,
-	text = function(args)
+	text = function(conn, msg, args)
 		if not args[1] then return nil end
 		local text = table.concat(args, ' ')
 		for k in ipairs(args) do args[k] = nil end
@@ -299,9 +316,9 @@ local converters = {
 	end,
 }
 
-function bot:checkArg(arg, argList)
+function bot:checkArg(conn, msg, arg, argList)
 	assert(converters[arg.type], "No converter for "..arg.type)
-	local val = converters[arg.type](argList)
+	local val = converters[arg.type](conn, msg, argList)
 	if val == nil and arg.default ~= nil then
 		val = arg.default
 	end

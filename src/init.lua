@@ -25,6 +25,7 @@ loadFile("schedule")
 loadFile("plugins")
 loadFile("commands")
 loadFile("log")
+loadFile("misc")
 
 
 local function safeThink(conn)

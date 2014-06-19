@@ -89,6 +89,11 @@ function notation (`bot:funcName()`):
   * `checkPrivs(needs, has, ignoreOwner)` - Checks if `has` contains all of
 	the privileges needed from `needs`.  If ignoreOwner is true having the
 	`owner` privilege will not cause this to automatically return true.
+  * `isNick(str)` - Checks if `str` is a valid IRC nickname.  This includes
+	nicks starting with decimal digits that are normally not allowed.
+  * `isChannel(str, [conn])` - Checks if `str` is a valid IRC channel.
+	If passed, the connection will be used to determine if it is a valid
+	channel on the connected server.
 
 
 
