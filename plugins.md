@@ -167,6 +167,10 @@ Here's an example argument definition:
 	value that will usually have spaces and it's the last argument, since
 	quotes aren't necessary.
   * `word`    - A single word.  Like `string` but may not contain spaces.
+  * `nick`    - A nickname, uses the caller's nickname if available and a
+	nickname isn't passed.
+  * `channel` - A channel, this uses the channel that the command was called
+	in if no valid channel name is passed.
 
 
 #### Argument Table
