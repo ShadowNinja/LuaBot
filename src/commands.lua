@@ -91,7 +91,7 @@ function bot:runCommand(parts, opts)
 		end
 		if not self:checkPrivs(def.privs, privs, false,
 				opts.conn and opts.conn.network, channel) then
-			return false, "Insuficient privileges"
+			return false, "Insufficient privileges."
 		end
 	end
 
