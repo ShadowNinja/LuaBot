@@ -204,6 +204,7 @@ end
 function bot:handleCommand(text, opts)
 	local args, msg = self:parseCommand(text)
 	if not args then return false, msg end
+	if #args == 0 then return false end
 	return self:evalCommand(args, opts)
 end
 
