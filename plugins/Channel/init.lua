@@ -1,7 +1,7 @@
 
 local m = {commands = {}}
 
-local channelPrivs = {"admin"}
+local channelPrivs = {"#op"}
 
 m.commands.join = {
 	description = "Join a channel",

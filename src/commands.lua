@@ -67,6 +67,19 @@ function bot:runCommand(parts, opts)
 		return false, "This command can only be used from IRC."
 	end
 
+	local err
+	args, err = self:processArgs(opts.conn, opts.msg, def.args, args)
+	if err then
+		return false, err
+	end
+	local channel
+	for i, arg in ipairs(def.args) do
+		if arg.type == "channel" and args[arg.id] then
+			channel = args[arg.id]
+			break
+		end
+	end
+
 	if def.privs then
 		local privs
 		if opts.privs then
@@ -76,15 +89,10 @@ function bot:runCommand(parts, opts)
 		else
 			privs = {}
 		end
-		if not self:checkPrivs(def.privs, privs) then
+		if not self:checkPrivs(def.privs, privs, false,
+				opts.conn and opts.conn.network, channel) then
 			return false, "Insuficient privileges"
 		end
-	end
-
-	local err
-	args, err = self:processArgs(opts.conn, opts.msg, def.args, args)
-	if err then
-		return false, err
 	end
 
 	return def.action(opts.conn, opts.msg, args)
@@ -214,7 +222,7 @@ function bot:getPrivs(user)
 end
 
 
-function bot:checkPrivs(needs, has, ignoreOwner, needOnlyOne)
+function bot:checkPrivs(needs, has, ignoreOwner, network, channel, needOnlyOne)
 	if not ignoreOwner and tablex.find(has, "owner") then
 		return true
 	end
@@ -223,7 +231,14 @@ function bot:checkPrivs(needs, has, ignoreOwner, needOnlyOne)
 		if type(needPriv) == "table" then
 			-- List of privs, of which only one is needed
 			hasCurrent = self:checkPrivs(needPriv, has,
-					ignoreOwner, not needOnlyOne)
+					ignoreOwner, conn, user, not needOnlyOne)
+		elseif needPriv:sub(1, 1) == "#" then
+			if network and channel then
+				hasCurrent = toboolean(tablex.find(has,
+					("%s:%s:%s"):format(network, channel,
+							needPriv:sub(2))
+				))
+			end
 		elseif tablex.find(has, needPriv) then
 			hasCurrent = true
 		end

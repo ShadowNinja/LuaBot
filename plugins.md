@@ -196,6 +196,10 @@ are indicated by a subtable.  For example:
 ```
 The `owner` privilege is special in that having it automatically gives you all
 privileges.
+Privileges containing symbols are reserved for special uses.  A privilege name
+starting with a `#` indicates a channel privilege, for example `#op` would work
+if the command had a channel argument and the user had the `Network:#Channel:op`
+privilege for that network and channel.
 
 
 
