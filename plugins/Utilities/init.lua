@@ -74,7 +74,15 @@ m.commands.config = {
 			end
 		end
 		if args.value then
-			last[nextKey] = args.value
+			local f, err = load("return "..args.value)
+			if not f then
+				return false, err
+			end
+			local good, obj = pcall(f)
+			if not good then
+				return false, obj
+			end
+			last[nextKey] = obj
 			bot:saveConfig()
 		end
 		local val = dump(last[nextKey], "")
