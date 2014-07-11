@@ -17,6 +17,7 @@ local function loadFile(name)
 	dofile(("src/%s.lua"):format(name))
 end
 
+loadFile("db")
 loadFile("config")
 loadFile("util")
 loadFile("hooks")

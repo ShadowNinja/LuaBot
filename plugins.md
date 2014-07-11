@@ -234,3 +234,25 @@ functions:
   * `unescape(str)` - Interprets standard escapes in the string `str`.
 	Returns the unescaped string, or `nil` if the unescaping failed.
 
+
+### LuaDatabase
+
+LuaDatabase is a simple class that manages a database that stores data in a
+file in Lua-like format (no `return` statement).  Note that this container
+doesn't handle references well (many references to one table become many
+tables) and it can't save functions or userdata.
+
+The constructor has the syntax `LuaDatabase(filename, data={})` where `filename`
+is the name of the file that the database will store it's data in and `data`
+is initial data for the database to store.
+
+It has the following members:
+
+  * `load()` - Loads the data from the database, overwriting data currently
+	stored.  Returns an error message, or `nil` on success.
+  * `save(indent)` - Saves the data to the database.  `indent` is a string to
+	indent with, if it is not specified no extra indentation is done and
+	output is on one line.  Returns an error message, or `nil` on success.
+  * `filename` - The database filename.
+  * `data` - The database's data.
+
