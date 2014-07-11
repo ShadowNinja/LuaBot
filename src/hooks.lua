@@ -4,14 +4,17 @@ bot.registeredHooks = {}
 
 
 function bot:hookup(conn)
-	conn.LuaBot_wrapped_hooks = {}
+	local counter = 1
+	conn.LuaBot_hook_ids = {}
 	for name, hooks in pairs(self.registeredHooks) do
 		for _, func in pairs(hooks) do
 			-- Wrap hooks to pass the Connection to them
 			local wrappedFunc = function(...) return func(conn, ...) end
 			-- We have to save the wrapped function so that we can unhook it later
-			conn.LuaBot_wrapped_hooks[func] = wrappedFunc
-			conn:hook(name, wrappedFunc)
+			conn.LuaBot_hook_ids[name] = conn.LuaBot_hook_ids[name] or {}
+			conn.LuaBot_hook_ids[name][func] = counter
+			conn:hook(name, counter, wrappedFunc)
+			counter = counter + 1
 		end
 	end
 end
@@ -31,13 +34,16 @@ function bot:unhook(name, func)
 	for i, f in pairs(registered) do
 		if f == func then
 			registered[i] = nil
-			break
 		end
 	end
 	for _, conn in pairs(self.conns) do
-		local wrappedFunc = conn.LuaBot_wrapped_hooks[func]
-		if wrappedFunc then
-			conn:unhook(name, wrappedFunc)
+		local ids = conn.LuaBot_hook_ids[name]
+		if ids then
+			local id = ids[func]
+			if id then
+				ids[func] = nil
+				conn:unhook(name, id)
+			end
 		end
 	end
 end
