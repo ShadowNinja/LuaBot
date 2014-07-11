@@ -94,6 +94,9 @@ function notation (`bot:funcName()`):
   * `isChannel(str, [conn])` - Checks if `str` is a valid IRC channel.
 	If passed, the connection will be used to determine if it is a valid
 	channel on the connected server.
+  * `say(conn, target, text, [moreID])` - Sends `text` to `target` on the
+	connection.  The optional `moreID` specifies an identifier for the
+	`more` command.
 
 
 

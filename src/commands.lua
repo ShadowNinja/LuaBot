@@ -381,18 +381,19 @@ function bot:replyTo(conn, msg)
 	return to
 end
 
-
 function bot:reply(conn, msg, text)
-	local replyTo = self:replyTo(conn, msg)
+	return self:say(conn, self:replyTo(conn, msg), text, msg.user.nick)
+end
 
+function bot:say(conn, target, text, moreID)
 	text = text:gsub("[\r\n%z]", " \\n ")
 
 	local textLen = #text
 	if textLen > 400 then
-		self:addMore(text, msg.user.nick)
-		text = self:getMore(msg.user.nick)
+		self:addMore(text, moreID)
+		text = self:getMore(moreID)
 	end
-	conn:queue(irc.msgs.notice(replyTo, text))
+	conn:queue(irc.msgs.notice(target, text))
 end
 
 
