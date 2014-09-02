@@ -30,7 +30,7 @@ m.commands.tell = {
 		if lnick == msg.user.nick:lower() then
 			return false, "You can tell that to yourself!"
 		end
-		if countMessages(conn, lnick) >= 4 then
+		if countMessages(conn, lnick) >= 8 then
 			return false, "I'm already holding too many messages for that user."
 		end
 		if #db.data > 32 then
