@@ -128,6 +128,12 @@ function bot.hooks:ctcp(msg)
 end
 
 
+function bot.hooks:disconnect(message, errorOccured)
+	bot:log("info", ("Disconnected from %s."):format(self.network))
+	bot.conns[self.network] = nil
+end
+
+
 local function debugHook(name)
 	return function(conn, line)
 		bot:log("debug", ("%s (%s): %s"):format(
@@ -146,6 +152,7 @@ function bot:registerHooks()
 	self:hook("OnCapabilitySet", bot.hooks.capset)
 	self:hook("DoPrivmsg", bot.hooks.privmsg)
 	self:hook("OnCTCP", bot.hooks.ctcp)
+	self:hook("OnDisconnect", bot.hooks.disconnect)
 
 	self:hook("OnRaw", debugHook("RECV"))
 	self:hook("OnSend", debugHook("SEND"))
