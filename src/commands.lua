@@ -411,3 +411,12 @@ function bot:checkCommandRegistration(name, def)
 	end
 end
 
+
+function bot:getActor(conn, msg)
+	local actor = msg and msg.user.nick or "<Unknown>"
+	if conn then
+		actor = conn.network..":"..actor
+	end
+	return actor
+end
+

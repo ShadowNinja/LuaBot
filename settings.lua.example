@@ -32,6 +32,7 @@
 	plugins = {
 		Channel = true
 		ExternalCommands = true,
+		Network = true,
 		Plugin = true,
 		Tell = true,
 		Utilities = true,
