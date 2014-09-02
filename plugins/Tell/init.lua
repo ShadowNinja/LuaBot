@@ -30,6 +30,9 @@ m.commands.tell = {
 		if lnick == msg.user.nick:lower() then
 			return false, "You can tell that to yourself!"
 		end
+		if #args.text > 400 then
+			return false, "Messages longer than 400 characters are not allowed."
+		end
 		if countMessages(conn, lnick) >= 8 then
 			return false, "I'm already holding too many messages for that user."
 		end
