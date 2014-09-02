@@ -352,20 +352,22 @@ local function splitLen(text, len)
 end
 
 
+bot.mores = {}
+
 function bot:addMore(text, name)
-	bot.mores[name] = splitLen(text, 380)
+	self.mores[name] = splitLen(text, 380)
 end
 
 
 function bot:getMore(name)
-	if not bot.mores[name] then
+	if not self.mores[name] then
 		return false
 	end
-	local text = table.remove(bot.mores[name], 1)
+	local text = table.remove(self.mores[name], 1)
 	if not text then
 		return false
 	end
-	local numMore = #bot.mores[name]
+	local numMore = #self.mores[name]
 	if numMore > 0 then
 		text = text .. irc.bold(" (%u more)"):format(numMore)
 	end
