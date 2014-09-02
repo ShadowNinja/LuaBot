@@ -49,24 +49,28 @@ function bot:unhook(name, func)
 end
 
 
-function bot.hooks:preregister(conn)
-	--self:queue(irc.Message("CAP", {"LS", "3.2"}))
+function bot.hooks:preregister()
+	self:queue(irc.msgs.cap("LS", "3.2"))
 end
 
 
 function bot.hooks:caplist()
-	if self.authed then
-		return
+	if not self.authed and not self.LuaBot_want_sasl then
+		self:queue(irc.msgs.cap("END"))
 	end
+end
+
+
+function bot.hooks:capavail(cap, value)
 	local netConf = bot.config.networks[self.network]
-	if netConf.sasl and
-	   netConf.sasl.username and
-	   netConf.sasl.password then
-		if self.availableCapabilities.sasl then
-			self:queue(irc.Message("CAP", {"REQ", "sasl"}))
-		else
-			bot:log("error", "SASL configured but not available!")
-		end
+	if cap == "sasl" and
+			netConf.sasl and
+			netConf.sasl.username and
+			netConf.sasl.password then
+		self.LuaBot_want_sasl = true
+		return true
+	elseif cap == "multi-prefix" then
+		return true
 	end
 end
 
@@ -75,10 +79,8 @@ function bot.hooks:capset(name, enabled)
 	if not enabled then
 		return
 	end
-	local done = false
 	local netConf = bot.config.networks[self.network]
 	if enabled and name == "sasl" then
-		done = true
 		local authString = base64e(
 			("%s\x00%s\x00%s"):format(
 				netConf.sasl.username,
@@ -86,11 +88,9 @@ function bot.hooks:capset(name, enabled)
 				netConf.sasl.password
 			)
 		)
-		self:queue(irc.Message("AUTHENTICATE", {"PLAIN"}))
-		self:queue(irc.Message("AUTHENTICATE", {authString}))
-	end
-	if done then
-		self:queue(irc.Message("CAP", {"END"}))
+		self:queue(irc.Message({command="AUTHENTICATE", args={"PLAIN"}}))
+		self:queue(irc.Message({command="AUTHENTICATE", args={authString}}))
+		self:queue(irc.msgs.cap("END"))
 	end
 end
 
@@ -141,8 +141,9 @@ end
 
 function bot:registerHooks()
 	self:hook("PreRegister", bot.hooks.preregister)
-	self:hook("OnCapList", bot.hooks.caplist)
-	self:hook("OnCapSet", bot.hooks.capset)
+	self:hook("OnCapabilityList", bot.hooks.caplist)
+	self:hook("OnCapabilityAvailable", bot.hooks.capavail)
+	self:hook("OnCapabilitySet", bot.hooks.capset)
 	self:hook("DoPrivmsg", bot.hooks.privmsg)
 	self:hook("OnCTCP", bot.hooks.ctcp)
 
