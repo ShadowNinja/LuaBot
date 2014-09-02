@@ -36,7 +36,7 @@ m.commands.quit = {
 		-- Wait for our response to get through before disconnecting
 		local reason = args.message or ("Disconnect requested by %s.")
 				:format(msg.user.nick)
-		bot.schedule:add(1, bot.disconnect, bot, conn.network, reason)
+		bot.schedule:add(1, false, bot.disconnect, bot, conn.network, reason)
 		return true, "Disconnecting..."
 	end
 }
