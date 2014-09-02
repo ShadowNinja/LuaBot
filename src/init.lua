@@ -61,8 +61,10 @@ function bot:main()
 
 		local numConns = 0
 		for _, conn in pairs(self.conns) do
-			safeThink(conn)
-			numConns = numConns + 1
+			if conn.connected then
+				safeThink(conn)
+				numConns = numConns + 1
+			end
 		end
 
 		if numConns < 1 then
