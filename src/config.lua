@@ -8,7 +8,10 @@ function bot:loadConfig()
 	local defaults = {
 		debug = true,
 		quitMessage = "Disconecting...",
+		log = {},
+		privs = {},
 		networks = {},
+		plugins = {},
 		pluginPaths = {"plugins"},
 	}
 

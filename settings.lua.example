@@ -2,17 +2,17 @@
 	prefix = "!",
 	nesting = "<>",  -- Opening and closing characters for command nesting
 	flushInterval = 300,
-	log = {  -- Required
+	log = {
 		color = true,
 		filename = nil,
 		-- Also "debug".  "important" is always printed.
 		levels = {"error", "warning", "action", "info"},
 	},
-	privs = {  -- Required
+	privs = {
 		["@Project/staff/BotManager$"] = {"owner"},
 		["@Project/staff/"] = {"admin"}
 	},
-	networks = {  -- Required
+	networks = {
 		IRCNet = {
 			autoConnect = true,
 			nick     = "LuaBot",  -- Required
@@ -21,7 +21,7 @@
 			host     = "irc.net",  -- Required
 			port     = 6667,
 			secure   = false,
-			channels = {  -- Required
+			channels = {
 				["#bots"] = {
 					autoJoin = false,
 				},
@@ -29,9 +29,12 @@
 		},
 	},
 	pluginPaths = {"plugins"},
-	plugins = {  -- Required
-		Utilities = true,
+	plugins = {
 		Channel = true
+		ExternalCommands = true,
+		Plugin = true,
+		Tell = true,
+		Utilities = true,
 	},
 }
 

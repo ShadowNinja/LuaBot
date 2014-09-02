@@ -103,9 +103,11 @@ function bot:connect(name, data)
 		password = data.password,
 	})
 	conn:invoke("OnConnect")
-	for chanName, info in pairs(data.channels) do
-		if info.autoJoin then
-			conn:join(chanName, info.key)
+	if data.channels then
+		for chanName, info in pairs(data.channels) do
+			if info.autoJoin then
+				conn:join(chanName, info.key)
+			end
 		end
 	end
 	return conn
