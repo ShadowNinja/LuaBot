@@ -16,7 +16,7 @@ local chansWaiting = {}
 
 m.commands.genmap = {
 	description = "Generate network channel user map",
-	privs = {"map"},
+	privs = {map=true},
 	IRCOnly = true,
 	action = function(conn, msg, args)
 		waitingListEnd = true

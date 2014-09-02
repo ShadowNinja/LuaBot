@@ -86,9 +86,10 @@ function notation (`bot:funcName()`):
 	if you can wait for the current step to finish.
   * `getPrivs(user)` - Returns a [Privilege Definition](#privilege-definitions)
 	for the IRC user.
-  * `checkPrivs(needs, has, ignoreOwner)` - Checks if `has` contains all of
-	the privileges needed from `needs`.  If ignoreOwner is true having the
-	`owner` privilege will not cause this to automatically return true.
+  * `checkPrivs(needs, has, ignoreOwner, network, channel)` - Checks if `has`
+	contains all of the privileges needed from `needs`.  If ignoreOwner is
+	true having the `owner` privilege will not cause this to automatically
+	return true.
   * `isNick(str)` - Checks if `str` is a valid IRC nickname.  This includes
 	nicks starting with decimal digits that are normally not allowed.
   * `isChannel(str, [conn])` - Checks if `str` is a valid IRC channel.
@@ -196,10 +197,10 @@ be denied.
 
 ### Privilege Definitions
 
-Privilege descriptions consist of a list of privilege names.  Either/or options
+Privilege descriptions consist of a set of privilege names.  Either/or options
 are indicated by a subtable.  For example:
 ```Lua
-{{"admin", "manager"}, "math"}
+{{admin=true, manager=true}, math=true}
 ```
 The `owner` privilege is special in that having it automatically gives you all
 privileges.

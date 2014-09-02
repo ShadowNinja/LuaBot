@@ -34,7 +34,7 @@ server:settimeout(0)
 local clients = {}
 
 
-local cmdOpts = {privs = {"owner"}}
+local cmdOpts = {privs = {owner=true}}
 
 function m.on.step()
 	local client, errMsg = server:accept()

@@ -1,6 +1,4 @@
 
-local tablex = require("pl.tablex")
-
 bot.commands = {}
 bot.mores = {}
 
@@ -215,7 +213,7 @@ function bot:getPrivs(user)
 	for mask, privSet in pairs(self.config.privs) do
 		if matchStr:find(mask) then
 			for _, priv in pairs(privSet) do
-				table.insert(privs, priv)
+				privs[priv] = true
 			end
 		end
 	end
@@ -224,23 +222,22 @@ end
 
 
 function bot:checkPrivs(needs, has, ignoreOwner, network, channel, needOnlyOne)
-	if not ignoreOwner and tablex.find(has, "owner") then
+	if not ignoreOwner and has.owner then
 		return true
 	end
-	for _, needPriv in pairs(needs) do
+	for needPriv, v in pairs(needs) do
 		local hasCurrent = false
-		if type(needPriv) == "table" then
+		if type(needPriv) == "number" then
 			-- List of privs, of which only one is needed
-			hasCurrent = self:checkPrivs(needPriv, has,
-					ignoreOwner, conn, user, not needOnlyOne)
+			hasCurrent = self:checkPrivs(v, has, ignoreOwner,
+					network, channel, not needOnlyOne)
 		elseif needPriv:sub(1, 1) == "#" then
 			if network and channel then
-				hasCurrent = toboolean(tablex.find(has,
-					("%s:%s:%s"):format(network, channel,
-							needPriv:sub(2))
-				))
+				hasCurrent = toboolean(has[("%s:%s:%s")
+					:format(network, channel, needPriv:sub(2))
+				])
 			end
-		elseif tablex.find(has, needPriv) then
+		elseif has[needPriv] then
 			hasCurrent = true
 		end
 		if needOnlyOne and hasCurrent then
