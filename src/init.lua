@@ -48,7 +48,7 @@ function bot:main()
 	for name, data in pairs(self.config.networks) do
 		if data.autoConnect ~= false then
 			bot:log("info", ("Connecting to %s..."):format(name))
-			self.conns[name] = self:connect(name, data)
+			self:connect(name, data)
 		end
 	end
 
@@ -110,6 +110,7 @@ function bot:connect(name, data)
 			end
 		end
 	end
+	self.conns[name] = conn
 	return conn
 end
 
