@@ -61,8 +61,10 @@ local function checkMessage(conn, user)
 		local entry = data[i]
 		if entry.to:lower() == lnick and entry.network == conn.network then
 			bot:say(conn, user.nick, ("[%s] <%s> %s: %s"):format(
-				os.date("%Y-%m-%dT%H:%M:%S", entry.time),
-				entry.from, entry.to, entry.text))
+					os.date("%Y-%m-%dT%H:%M:%S", entry.time),
+					entry.from, entry.to, entry.text),
+				user.nick
+			)
 			table.remove(data, i)
 			changed = true
 		else
