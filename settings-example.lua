@@ -1,6 +1,7 @@
 {
 	prefix = "!",
 	nesting = "<>",  -- Opening and closing characters for command nesting
+	quoting = "``",  -- Opening and closing characters for command quoting
 	flushInterval = 300,
 	log = {
 		color = true,

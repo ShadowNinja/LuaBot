@@ -93,13 +93,17 @@ end
 
 local unescapeEnv = {}
 function unescape(s)
-	-- Check for a string closer (eg, [[test", print("foo")]])
-	for slashes in s:gmatch("(\\*)\"") do
+	--local invalid_escape = false
+	s = s:gsub([[(\*)"]], function(slashes)
 		if #slashes % 2 == 0 then
-			return nil
+			return slashes..[[\"]]
+		--else
+		--	invalid_escape = true
 		end
-	end
-	local f = load('return "'..s..'"', "UnescapeSandbox", "t", unescapeEnv)
+	end)
+	--if invalid_escape then return nil end
+	local f = load(([[return "%s"]]):format(s),
+		"UnescapeSandbox", "t", unescapeEnv)
 	local good, str = pcall(f)
 	if good then
 		return str

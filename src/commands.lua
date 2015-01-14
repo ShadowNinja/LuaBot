@@ -109,6 +109,8 @@ end
 
 local nesting = bot.config.nesting or "<>"
 local nestingOpen, nestingClose = nesting:sub(1, 1), nesting:sub(2, 2)
+local quoting = bot.config.quoting or "``"
+local quoteOpen, quoteClose = quoting:sub(1, 1), quoting:sub(2, 2)
 
 
 function bot:parseCommand(text, findClose)
@@ -120,7 +122,7 @@ function bot:parseCommand(text, findClose)
 	local textLen = #text
 	local foundClose = false
 	local function save()
-		-- Empty arguments are supported with quotes
+		-- Empty arguments are supported with quotes.
 		if argBuffer ~= "" then
 			table.insert(args, argBuffer)
 			argBuffer = ""
@@ -143,7 +145,7 @@ function bot:parseCommand(text, findClose)
 				return res, endPos
 			end
 			table.insert(args, res)
-			pos = pos + endPos  -- Incremented below
+			pos = pos + endPos  -- Incremented below.
 		elseif c == nestingClose then
 			if findClose then
 				foundClose = true
@@ -151,29 +153,34 @@ function bot:parseCommand(text, findClose)
 			else
 				return false, "Unexpected nested command closer."
 			end
-		elseif c == '"' then
+		elseif c == quoteOpen then
 			save()
 			-- Find the end of the quote.  A quote is ended by a
-			-- double-quote character preceded by an even number
+			-- quote closing character preceded by an even number
 			-- (including 0) of backslashes.
 			local endPos = pos
 			local _, slashes
 			repeat
-				_, endPos, slashes = text:find("(\\*)\"", endPos + 1)
+				_, endPos, slashes = text:find("(\\*)"..quoteClose, endPos + 1)
 				if not endPos then
 					return false, "No end to quoted string."
 				end
 			until #slashes % 2 == 0
 
-			-- Try to unescape the string.
-			local str = unescape(text:sub(pos + 1, endPos - 1))
+			local escapedStr = text:sub(pos + 1, endPos - 1)
+
+			-- Unescape quote closers.
+			local str = escapedStr:gsub("\\"..quoteClose, quoteClose)
+
+			-- Try to unescape the rest of the string.
+			str = unescape(str)
 			if not str then
-				return false, ("Unable to read string \"%s\"")
-					:format(text:sub(pos + 1, endPos - 1))
+				return false, ("Unable to decode string %q")
+					:format(escapedStr)
 			end
 
 			table.insert(args, str)
-			pos = endPos  -- Incremented below
+			pos = endPos  -- Incremented below.
 		elseif c == " " then
 			save()
 		else
