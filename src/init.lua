@@ -6,6 +6,8 @@ irc = require("irc")
 require("pl.stringx").import()
 require("pl.strict")
 
+math.randomseed(os.clock())
+
 bot = {}
 bot.versionString = "LuaBot 0.1"
 bot.conns = {}
