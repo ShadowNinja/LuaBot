@@ -31,7 +31,7 @@
 	},
 	pluginPaths = {"plugins"},
 	plugins = {
-		Channel = true
+		Channel = true,
 		ExternalCommands = true,
 		Network = true,
 		Plugin = true,
